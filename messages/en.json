@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "title": "Forest Poker",
+    "description": "Buy-in / buy-out tracker for home games"
+  },
+  "nav": {
+    "games": "Games",
+    "history": "History",
+    "login": "Log in",
+    "logout": "Log out"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "google": "Continue with Google",
+    "forgot": "Forgot password?",
+    "needAccount": "Need an account? Register",
+    "haveAccount": "Already have an account? Sign in",
+    "errors": {
+      "generic": "Something went wrong. Try again."
+    }
+  },
+  "onboarding": {
+    "title": "Pick a username",
+    "subtitle": "Shown on games and ledgers. Lowercase letters, numbers, underscore.",
+    "submit": "Continue",
+    "taken": "That username is taken.",
+    "invalid": "Use 3–32 chars: letters, numbers, underscore."
+  },
+  "games": {
+    "title": "Games",
+    "create": "New game",
+    "gameTitle": "Title",
+    "submitCreate": "Start game",
+    "empty": "No games yet — shuffle up.",
+    "statusOpen": "Open",
+    "statusClosed": "Closed",
+    "join": "Join",
+    "joined": "In game",
+    "members": "Players",
+    "ledger": "Ledger",
+    "buyIn": "Buy in",
+    "buyOut": "Buy out (profit)",
+    "amountNis": "Amount (₪)",
+    "note": "Note (optional)",
+    "addEntry": "Add entry",
+    "closeGame": "Close game",
+    "closeConfirm": "Close this game and compute settlements? Totals must balance to ₪0.",
+    "settlements": "Settlements",
+    "from": "From",
+    "to": "To",
+    "closedBy": "Closed by",
+    "nonMemberHint": "Join the game to add buy-ins or close.",
+    "balanceError": "Cannot close: net totals must sum to zero.",
+    "alreadyClosed": "This game is already closed."
+  },
+  "history": {
+    "title": "History",
+    "subtitle": "Games you played",
+    "lifetime": "Lifetime",
+    "empty": "No completed games with you yet.",
+    "net": "Your net",
+    "chartTitle": "Net per closed game"
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "currency": "₪"
+  }
+}

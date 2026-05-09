@@ -1,0 +1,110 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { addLedgerEntry } from "@/actions/games";
+
+type Props = {
+  gameId: string;
+  disabled?: boolean;
+};
+
+export function GameLedgerForm({ gameId, disabled }: Props) {
+  const t = useTranslations("games");
+  const router = useRouter();
+  const [kind, setKind] = useState<"buy_in" | "buy_out">("buy_in");
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (disabled) return;
+    setLoading(true);
+    setError(null);
+    const n = parseInt(amount, 10);
+    if (!Number.isFinite(n) || n < 1) {
+      setError("invalid");
+      setLoading(false);
+      return;
+    }
+    const res = await addLedgerEntry({
+      gameId,
+      kind,
+      amountNis: n,
+      note: note || null,
+    });
+    setLoading(false);
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
+    setAmount("");
+    setNote("");
+    router.refresh();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3 rounded-xl border border-[var(--fp-wood-mid)]/25 bg-[var(--fp-parchment)]/40 p-4">
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setKind("buy_in")}
+          className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${
+            kind === "buy_in"
+              ? "bg-[var(--fp-moss)] text-white"
+              : "bg-white/80"
+          }`}
+        >
+          {t("buyIn")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setKind("buy_out")}
+          className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${
+            kind === "buy_out"
+              ? "bg-[var(--fp-felt)] text-white"
+              : "bg-white/80"
+          }`}
+        >
+          {t("buyOut")}
+        </button>
+      </div>
+      <div>
+        <label className="mb-1 block text-xs font-medium">{t("amountNis")}</label>
+        <input
+          type="number"
+          min={1}
+          step={1}
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          required
+          disabled={disabled || loading}
+          className="w-full rounded-lg border border-[var(--fp-wood-mid)]/40 bg-white px-3 py-2"
+          dir="ltr"
+        />
+      </div>
+      <div>
+        <label className="mb-1 block text-xs font-medium">{t("note")}</label>
+        <input
+          type="text"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          disabled={disabled || loading}
+          className="w-full rounded-lg border border-[var(--fp-wood-mid)]/40 bg-[var(--fp-panel)] px-3 py-2"
+          dir="auto"
+        />
+      </div>
+      {error && <p className="text-sm text-[var(--fp-loss)]">{error}</p>}
+      <button
+        type="submit"
+        disabled={disabled || loading}
+        className="w-full min-h-11 rounded-xl bg-[var(--fp-wood-dark)] font-semibold text-white disabled:opacity-50"
+      >
+        {t("addEntry")}
+      </button>
+    </form>
+  );
+}

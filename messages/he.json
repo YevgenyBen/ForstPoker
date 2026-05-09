@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "title": "Forest Poker",
+    "description": "מעקב קנייה ויציאה במשחקי בית"
+  },
+  "nav": {
+    "games": "משחקים",
+    "history": "היסטוריה",
+    "login": "כניסה",
+    "logout": "יציאה"
+  },
+  "auth": {
+    "email": "אימייל",
+    "password": "סיסמה",
+    "signIn": "התחברות",
+    "signUp": "הרשמה",
+    "google": "המשך עם Google",
+    "forgot": "שכחת סיסמה?",
+    "needAccount": "אין חשבון? הרשמה",
+    "haveAccount": "יש חשבון? התחברות",
+    "errors": {
+      "generic": "משהו השתבש. נסה שוב."
+    }
+  },
+  "onboarding": {
+    "title": "בחר שם משתמש",
+    "subtitle": "מוצג במשחקים ובפירוט. אותיות קטנות, מספרים, קו תחתון.",
+    "submit": "המשך",
+    "taken": "שם המשתמש תפוס.",
+    "invalid": "3–32 תווים: אותיות, מספרים, קו תחתון."
+  },
+  "games": {
+    "title": "משחקים",
+    "create": "משחק חדש",
+    "gameTitle": "כותרת",
+    "submitCreate": "התחל משחק",
+    "empty": "עדיין אין משחקים.",
+    "statusOpen": "פתוח",
+    "statusClosed": "סגור",
+    "join": "הצטרף",
+    "joined": "במשחק",
+    "members": "שחקנים",
+    "ledger": "פירוט",
+    "buyIn": "קנייה פנימה",
+    "buyOut": "יציאה (רווח)",
+    "amountNis": "סכום (₪)",
+    "note": "הערה (אופציונלי)",
+    "addEntry": "הוסף רשומה",
+    "closeGame": "סגור משחק",
+    "closeConfirm": "לסגור את המשחק ולחשב התחשבנות? הסכומים חייבים לאזן ל-₪0.",
+    "settlements": "התחשבנות",
+    "from": "מ",
+    "to": "אל",
+    "closedBy": "נסגר על ידי",
+    "nonMemberHint": "הצטרף למשחק כדי להוסיף או לסגור.",
+    "balanceError": "לא ניתן לסגור: סכום נטו חייב להסתכם ל-0.",
+    "alreadyClosed": "המשחק כבר סגור."
+  },
+  "history": {
+    "title": "היסטוריה",
+    "subtitle": "משחקים שהשתתפת בהם",
+    "lifetime": "מאזן כולל",
+    "empty": "עדיין אין משחקים סגורים איתך.",
+    "net": "נטו שלך",
+    "chartTitle": "נטו למשחק סגור"
+  },
+  "common": {
+    "loading": "טוען…",
+    "save": "שמור",
+    "cancel": "ביטול",
+    "currency": "₪"
+  }
+}
