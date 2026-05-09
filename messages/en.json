@@ -67,7 +67,14 @@
     "closedBy": "Closed by",
     "nonMemberHint": "Join the game to add buy-ins or close.",
     "balanceError": "Cannot close: net totals must sum to zero.",
-    "alreadyClosed": "This game is already closed."
+    "alreadyClosed": "This game is already closed.",
+    "deleteGameShort": "Delete",
+    "deleteGame": "Delete game permanently",
+    "deleteGameConfirm": "Permanently delete this game and all players, ledger rows, and settlements? This cannot be undone.",
+    "deleteGameWarning": "Danger zone — removes all data for this game.",
+    "deleteGameForbidden": "You don’t have permission to delete games.",
+    "deleteGameNotFound": "Game no longer exists.",
+    "deleteGameFailed": "Could not delete the game. Try again."
   },
   "history": {
     "title": "History",

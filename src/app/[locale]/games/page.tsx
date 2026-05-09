@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createGame, listGames } from "@/actions/games";
 import { getViewer } from "@/lib/auth/session";
+import { canDeleteGames } from "@/lib/auth/gameAdmin";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { DeleteGameButton } from "@/components/DeleteGameButton";
 
 export default async function GamesPage({
   params,
@@ -18,6 +20,7 @@ export default async function GamesPage({
 
   const games = await listGames();
   const t = await getTranslations("games");
+  const showGameDelete = canDeleteGames(user.email);
   const tf = (d: Date) =>
     new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
       dateStyle: "medium",
@@ -71,26 +74,33 @@ export default async function GamesPage({
           <ul className="space-y-2">
             {games.map((g) => (
               <li key={g.id}>
-                <Link
-                  href={`/${locale}/games/${g.id}`}
-                  className="flex items-center justify-between rounded-xl border border-[var(--fp-wood-mid)]/25 bg-[var(--fp-panel)] px-4 py-3 transition hover:bg-[var(--fp-parchment)]"
-                >
-                  <span className="font-medium" dir="auto">
-                    {g.title}
-                  </span>
-                  <span className="flex items-center gap-2 text-sm">
-                    <span
-                      className={
-                        g.status === "open"
-                          ? "text-[var(--fp-win)]"
-                          : "text-[var(--fp-secondary)]"
-                      }
-                    >
-                      {g.status === "open" ? t("statusOpen") : t("statusClosed")}
+                <div className="flex items-stretch gap-2 rounded-xl border border-[var(--fp-wood-mid)]/25 bg-[var(--fp-panel)] transition hover:bg-[var(--fp-parchment)]">
+                  <Link
+                    href={`/${locale}/games/${g.id}`}
+                    className="flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3"
+                  >
+                    <span className="font-medium" dir="auto">
+                      {g.title}
                     </span>
-                    <span className="text-[var(--fp-secondary)]">{tf(g.createdAt)}</span>
-                  </span>
-                </Link>
+                    <span className="flex shrink-0 items-center gap-2 text-sm">
+                      <span
+                        className={
+                          g.status === "open"
+                            ? "text-[var(--fp-win)]"
+                            : "text-[var(--fp-secondary)]"
+                        }
+                      >
+                        {g.status === "open" ? t("statusOpen") : t("statusClosed")}
+                      </span>
+                      <span className="text-[var(--fp-secondary)]">{tf(g.createdAt)}</span>
+                    </span>
+                  </Link>
+                  {showGameDelete && (
+                    <div className="flex shrink-0 items-center border-s border-[var(--fp-wood-mid)]/20 px-2 py-2">
+                      <DeleteGameButton gameId={g.id} compact />
+                    </div>
+                  )}
+                </div>
               </li>
             ))}
           </ul>

@@ -1,40 +1,101 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { logoutSession } from "@/lib/auth/clientLogout";
+
+function navButtonClass(active: boolean): string {
+  return `flex min-h-11 min-w-0 flex-1 cursor-pointer items-center justify-center rounded-lg p-3 text-center text-sm font-medium transition-[transform,filter,background-color,color,opacity] duration-200 ease-out motion-safe:hover:-translate-y-px motion-safe:hover:brightness-[1.06] motion-safe:active:translate-y-0 motion-safe:active:brightness-[0.96] ${
+    active
+      ? "bg-[var(--fp-moss)] text-white"
+      : "text-[var(--fp-ink)] hover:bg-[var(--fp-parchment)]"
+  }`;
+}
 
 export function BottomNav() {
   const t = useTranslations("nav");
+  const tCommon = useTranslations("common");
   const pathname = usePathname();
+  const router = useRouter();
   const locale = useLocale();
   const base = `/${locale}`;
+  const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/me", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d: { user?: unknown; hasSession?: boolean }) => {
+        if (!cancelled) {
+          setLoggedIn(Boolean(d?.hasSession || d?.user));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoggedIn(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await logoutSession();
+      setLoggedIn(false);
+      router.push(`${base}/login`);
+      router.refresh();
+    } finally {
+      setLoggingOut(false);
+    }
+  }
+
+  const loginHref = `${base}/login`;
+  const loginActive =
+    pathname === loginHref || pathname.startsWith(`${loginHref}/`);
 
   const items = [
     { href: `${base}/games`, label: t("games") },
     { href: `${base}/history`, label: t("history") },
-    { href: `${base}/login`, label: t("login") },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--fp-wood-mid)] bg-[var(--fp-panel)]/95 backdrop-blur-sm safe-area-pb">
       <div className="mx-auto flex max-w-lg gap-1 px-3 py-2">
         {items.map(({ href, label }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
+          const active =
+            pathname === href || pathname.startsWith(`${href}/`);
           return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex min-h-11 min-w-0 flex-1 cursor-pointer items-center justify-center rounded-lg p-3 text-center text-sm font-medium transition-[transform,filter,background-color,color,opacity] duration-200 ease-out motion-safe:hover:-translate-y-px motion-safe:hover:brightness-[1.06] motion-safe:active:translate-y-0 motion-safe:active:brightness-[0.96] ${
-                active
-                  ? "bg-[var(--fp-moss)] text-white"
-                  : "text-[var(--fp-ink)] hover:bg-[var(--fp-parchment)]"
-              }`}
-            >
+            <Link key={href} href={href} className={navButtonClass(active)}>
               {label}
             </Link>
           );
         })}
+
+        {loggedIn === null ? (
+          <span
+            className={`${navButtonClass(false)} opacity-50`}
+            aria-hidden
+          >
+            …
+          </span>
+        ) : loggedIn ? (
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className={navButtonClass(false)}
+          >
+            {loggingOut ? tCommon("loading") : t("logout")}
+          </button>
+        ) : (
+          <Link href={loginHref} className={navButtonClass(loginActive)}>
+            {t("login")}
+          </Link>
+        )}
       </div>
     </nav>
   );

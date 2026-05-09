@@ -67,7 +67,14 @@
     "closedBy": "נסגר על ידי",
     "nonMemberHint": "הצטרף למשחק כדי להוסיף או לסגור.",
     "balanceError": "לא ניתן לסגור: סכום נטו חייב להסתכם ל-0.",
-    "alreadyClosed": "המשחק כבר סגור."
+    "alreadyClosed": "המשחק כבר סגור.",
+    "deleteGameShort": "מחק",
+    "deleteGame": "מחק משחק לצמיתות",
+    "deleteGameConfirm": "למחוק לצמיתות את המשחק, כל השחקנים, הפירוט וההתחשבנות? לא ניתן לבטל.",
+    "deleteGameWarning": "אזור מסוכן — מוחק את כל הנתונים של המשחק.",
+    "deleteGameForbidden": "אין הרשאה למחוק משחקים.",
+    "deleteGameNotFound": "המשחק כבר לא קיים.",
+    "deleteGameFailed": "לא ניתן למחוק את המשחק. נסה שוב."
   },
   "history": {
     "title": "היסטוריה",

@@ -14,6 +14,7 @@ import {
   settlements,
 } from "@/db/schema";
 import { getViewer } from "@/lib/auth/session";
+import { canDeleteGames } from "@/lib/auth/gameAdmin";
 import {
   computeNetByUser,
   minimizeTransfers,
@@ -169,6 +170,24 @@ export async function closeGame(gameId: string) {
     if (msg === "not_member") return { error: "not_member" as const };
     throw e;
   }
+
+  revalidatePath(`/${locale}/games`);
+  revalidatePath(`/${locale}/games/${gameId}`);
+  revalidatePath(`/${locale}/history`);
+  return { ok: true as const };
+}
+
+export async function deleteGame(gameId: string) {
+  const { user, locale } = await requireUser();
+
+  if (!canDeleteGames(user.email)) {
+    return { error: "forbidden" as const };
+  }
+
+  const [g] = await db.select().from(games).where(eq(games.id, gameId)).limit(1);
+  if (!g) return { error: "not_found" as const };
+
+  await db.delete(games).where(eq(games.id, gameId));
 
   revalidatePath(`/${locale}/games`);
   revalidatePath(`/${locale}/games/${gameId}`);

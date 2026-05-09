@@ -3,10 +3,12 @@ import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getGameDetail } from "@/actions/games";
 import { getViewer } from "@/lib/auth/session";
+import { canDeleteGames } from "@/lib/auth/gameAdmin";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { JoinGameButton } from "@/components/JoinGameButton";
 import { GameLedgerForm } from "@/components/GameLedgerForm";
 import { CloseGameButton } from "@/components/CloseGameButton";
+import { DeleteGameButton } from "@/components/DeleteGameButton";
 
 export default async function GameDetailPage({
   params,
@@ -22,6 +24,8 @@ export default async function GameDetailPage({
   if (!detail) notFound();
 
   const { game, members, ledger, settlements, closerName, isMember } = detail;
+  const canDeleteGame =
+    v.kind === "member" && canDeleteGames(v.user.email);
   const t = await getTranslations("games");
 
   const tf = (d: Date) =>
@@ -149,6 +153,15 @@ export default async function GameDetailPage({
               {t("closedBy")}: <span dir="auto">{closerName}</span>
             </p>
           )}
+        </section>
+      )}
+
+      {canDeleteGame && (
+        <section className="rounded-xl border border-[var(--fp-loss)]/35 bg-[var(--fp-loss)]/5 p-4">
+          <p className="mb-3 text-sm leading-snug text-[var(--fp-loss)]">
+            {t("deleteGameWarning")}
+          </p>
+          <DeleteGameButton gameId={gameId} />
         </section>
       )}
     </main>
