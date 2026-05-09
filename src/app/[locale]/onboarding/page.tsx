@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { completeOnboarding } from "@/actions/onboarding";
 import { getAppUser } from "@/lib/auth/session";
 import { verifySessionCookie } from "@/lib/auth/session";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { OnboardingForm } from "@/components/OnboardingForm";
 
 export default async function OnboardingPage({
   params,
@@ -27,34 +27,19 @@ export default async function OnboardingPage({
       <div className="flex justify-end">
         <LocaleSwitcher />
       </div>
-      <div>
-        <h1 className="text-2xl font-semibold">{t("title")}</h1>
-        <p className="mt-2 text-sm text-[var(--fp-wood-dark)]">{t("subtitle")}</p>
-      </div>
 
-      <form action={completeOnboarding} className="space-y-4">
-        <div>
-          <label htmlFor="username" className="mb-1 block text-sm font-medium">
-            username
-          </label>
-          <input
-            id="username"
-            name="username"
-            required
-            minLength={3}
-            maxLength={32}
-            className="w-full rounded-lg border border-[var(--fp-wood-mid)]/40 bg-[var(--fp-panel)] px-3 py-2"
-            dir="auto"
-            autoComplete="username"
-          />
+      <div className="mx-auto w-full max-w-sm rounded-2xl border border-[var(--fp-wood-mid)]/30 bg-[var(--fp-panel)] p-6 shadow-sm">
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold leading-tight text-[var(--fp-ink)]">
+            {t("title")}
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-[var(--fp-secondary)]">
+            {t("subtitle")}
+          </p>
         </div>
-        <button
-          type="submit"
-          className="w-full min-h-11 rounded-xl bg-[var(--fp-moss)] font-semibold text-white"
-        >
-          {t("submit")}
-        </button>
-      </form>
+
+        <OnboardingForm />
+      </div>
     </main>
   );
 }

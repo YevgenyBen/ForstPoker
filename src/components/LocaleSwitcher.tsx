@@ -23,7 +23,7 @@ export function LocaleSwitcher() {
   return (
     <Link
       href={href}
-      className="text-sm font-medium text-[var(--fp-wood-dark)] underline underline-offset-2"
+      className="text-sm font-medium text-[var(--fp-brass)] underline decoration-[var(--fp-brass)]/70 underline-offset-[5px] hover:text-[var(--fp-ink)] hover:decoration-[var(--fp-ink)]"
     >
       {other === "he" ? "עברית" : "English"}
     </Link>

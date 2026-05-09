@@ -1,30 +1,36 @@
 @import "tailwindcss";
 
 :root {
+  color-scheme: light;
   --fp-bg: #f4ede4;
   --fp-parchment: #ebe3d6;
   --fp-panel: #faf6ef;
-  --fp-ink: #1e293b;
+  --fp-ink: #0f172a;
   --fp-wood-dark: #5c4033;
   --fp-wood-mid: #8b6914;
   --fp-moss: #3d6b4f;
   --fp-pine: #1f4d3a;
   --fp-felt: #2d5a45;
-  --fp-brass: #b8860b;
+  --fp-brass: #9a7209;
   --fp-win: #2f7d4a;
-  --fp-loss: #a63d40;
+  --fp-loss: #9b2e32;
   --fp-sage: #c5d1c3;
+  /** Hints, meta, subtitles — must stay legible on cream / panel */
+  --fp-secondary: #3d2a1f;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --fp-bg: #1a1814;
-    --fp-parchment: #252018;
-    --fp-panel: #221e18;
-    --fp-ink: #e8e4dc;
-    --fp-wood-dark: #a08060;
-    --fp-wood-mid: #6b5344;
+    color-scheme: dark;
+    --fp-bg: #12100e;
+    --fp-parchment: #1c1915;
+    --fp-panel: #1a1815;
+    --fp-ink: #f3f0e8;
+    --fp-wood-dark: #d4b896;
+    --fp-wood-mid: #8a7355;
     --fp-sage: #3d453d;
+    --fp-brass: #e4b84a;
+    --fp-secondary: #e8dfd2;
   }
 }
 
@@ -38,6 +44,74 @@
 body {
   background: var(--fp-bg);
   color: var(--fp-ink);
+}
+
+/**
+ * Buttons: pointer + subtle hover (works with OS “prefers dark” without fighting white inputs).
+ */
+button {
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease,
+    opacity 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button:hover:not(:disabled) {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+  }
+
+  button:active:not(:disabled) {
+    transform: translateY(0);
+    filter: brightness(0.96);
+    transition-duration: 0.08s;
+  }
+}
+
+input[type="submit"],
+input[type="button"],
+input[type="reset"] {
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease,
+    opacity 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+input[type="submit"]:disabled,
+input[type="button"]:disabled,
+input[type="reset"]:disabled {
+  cursor: not-allowed;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  input[type="submit"]:hover:not(:disabled),
+  input[type="button"]:hover:not(:disabled),
+  input[type="reset"]:hover:not(:disabled) {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+  }
+
+  input[type="submit"]:active:not(:disabled),
+  input[type="button"]:active:not(:disabled),
+  input[type="reset"]:active:not(:disabled) {
+    transform: translateY(0);
+    filter: brightness(0.96);
+    transition-duration: 0.08s;
+  }
 }
 
 .safe-area-pb {

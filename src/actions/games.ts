@@ -13,7 +13,7 @@ import {
   ledgerEntries,
   settlements,
 } from "@/db/schema";
-import { getAppUser } from "@/lib/auth/session";
+import { getViewer } from "@/lib/auth/session";
 import {
   computeNetByUser,
   minimizeTransfers,
@@ -25,9 +25,10 @@ const amountSchema = z.coerce.number().int().positive();
 
 async function requireUser() {
   const locale = await getLocale();
-  const user = await getAppUser();
-  if (!user) redirect(`/${locale}/login`);
-  return { user, locale };
+  const v = await getViewer();
+  if (v.kind === "guest") redirect(`/${locale}/login`);
+  if (v.kind === "needs_onboarding") redirect(`/${locale}/onboarding`);
+  return { user: v.user, locale };
 }
 
 export async function createGame(formData: FormData) {

@@ -7,6 +7,14 @@ import { appUsers } from "@/db/schema";
 const SESSION_COOKIE = "__session";
 const SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 5; // 5 days
 
+export type AppUserRow = typeof appUsers.$inferSelect;
+
+/** Routing: guest vs Firebase session without profile vs full member */
+export type ViewerState =
+  | { kind: "guest" }
+  | { kind: "needs_onboarding"; firebaseUid: string }
+  | { kind: "member"; user: AppUserRow };
+
 export async function verifySessionCookie(): Promise<
   { uid: string; email?: string } | null
 > {
@@ -21,15 +29,25 @@ export async function verifySessionCookie(): Promise<
   }
 }
 
-export async function getAppUser() {
+export async function getViewer(): Promise<ViewerState> {
   const session = await verifySessionCookie();
-  if (!session) return null;
+  if (!session) return { kind: "guest" };
+
   const [row] = await db
     .select()
     .from(appUsers)
     .where(eq(appUsers.firebaseUid, session.uid))
     .limit(1);
-  return row ?? null;
+
+  if (!row) return { kind: "needs_onboarding", firebaseUid: session.uid };
+  return { kind: "member", user: row };
+}
+
+/** Back-compat: member row only (null if guest or still onboarding). */
+export async function getAppUser(): Promise<AppUserRow | null> {
+  const v = await getViewer();
+  if (v.kind === "member") return v.user;
+  return null;
 }
 
 export { SESSION_COOKIE, SESSION_MAX_AGE_MS };

@@ -55,7 +55,7 @@ export function GameLedgerForm({ gameId, disabled }: Props) {
           className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${
             kind === "buy_in"
               ? "bg-[var(--fp-moss)] text-white"
-              : "bg-white/80"
+              : "bg-white/90 text-neutral-900 shadow-sm"
           }`}
         >
           {t("buyIn")}
@@ -66,14 +66,14 @@ export function GameLedgerForm({ gameId, disabled }: Props) {
           className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${
             kind === "buy_out"
               ? "bg-[var(--fp-felt)] text-white"
-              : "bg-white/80"
+              : "bg-white/90 text-neutral-900 shadow-sm"
           }`}
         >
           {t("buyOut")}
         </button>
       </div>
       <div>
-        <label className="mb-1 block text-xs font-medium">{t("amountNis")}</label>
+        <label className="mb-1 block text-xs font-medium text-[var(--fp-ink)]">{t("amountNis")}</label>
         <input
           type="number"
           min={1}
@@ -82,26 +82,30 @@ export function GameLedgerForm({ gameId, disabled }: Props) {
           onChange={(e) => setAmount(e.target.value)}
           required
           disabled={disabled || loading}
-          className="w-full rounded-lg border border-[var(--fp-wood-mid)]/40 bg-white px-3 py-2"
+          className="w-full rounded-lg border border-[var(--fp-wood-mid)]/40 bg-white px-3 py-2 text-neutral-900 placeholder:text-neutral-500"
           dir="ltr"
         />
       </div>
       <div>
-        <label className="mb-1 block text-xs font-medium">{t("note")}</label>
+        <label className="mb-1 block text-xs font-medium text-[var(--fp-ink)]">{t("note")}</label>
         <input
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
           disabled={disabled || loading}
-          className="w-full rounded-lg border border-[var(--fp-wood-mid)]/40 bg-[var(--fp-panel)] px-3 py-2"
+          className="w-full rounded-lg border border-[var(--fp-wood-mid)]/40 bg-white px-3 py-2 text-neutral-900 placeholder:text-neutral-500"
           dir="auto"
         />
       </div>
-      {error && <p className="text-sm text-[var(--fp-loss)]">{error}</p>}
+      {error && (
+        <p className="rounded-lg border border-[var(--fp-loss)]/40 bg-[var(--fp-loss)]/12 px-3 py-2 text-sm font-medium text-[var(--fp-loss)]">
+          {error}
+        </p>
+      )}
       <button
         type="submit"
         disabled={disabled || loading}
-        className="w-full min-h-11 rounded-xl bg-[var(--fp-wood-dark)] font-semibold text-white disabled:opacity-50"
+        className="w-full min-h-11 rounded-xl bg-[var(--fp-moss)] font-semibold text-white shadow-sm disabled:opacity-50"
       >
         {t("addEntry")}
       </button>

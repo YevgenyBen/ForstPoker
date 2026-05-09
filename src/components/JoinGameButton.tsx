@@ -20,7 +20,7 @@ export function JoinGameButton({ gameId, isMember }: Props) {
 
   if (isMember) {
     return (
-      <span className="inline-flex rounded-lg bg-[var(--fp-sage)] px-3 py-1 text-sm font-medium text-[var(--fp-pine)]">
+      <span className="inline-flex rounded-lg bg-[var(--fp-sage)] px-3 py-1 text-sm font-semibold text-[var(--fp-ink)]">
         {t("joined")}
       </span>
     );

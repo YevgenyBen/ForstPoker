@@ -15,19 +15,32 @@
     "signIn": "Sign in",
     "signUp": "Create account",
     "google": "Continue with Google",
+    "googleHint": "On localhost, Google opens in a small popup (allow popups). Use http://localhost:3000 — same host as when you started (not 127.0.0.1 mixed with localhost).",
+    "embeddedPreviewTitle": "IDE preview",
+    "embeddedPreviewBody": "Google sign-in does not work inside Cursor’s embedded browser. Use Chrome or Edge with the same URL (e.g. http://localhost:3000).",
+    "openExternalBrowser": "Open in system browser",
     "forgot": "Forgot password?",
     "needAccount": "Need an account? Register",
     "haveAccount": "Already have an account? Sign in",
     "errors": {
-      "generic": "Something went wrong. Try again."
+      "generic": "Something went wrong. Try again.",
+      "emailInUse": "That email is already registered. Sign in instead.",
+      "weakPassword": "Password must be at least 6 characters.",
+      "invalidEmail": "Enter a valid email address.",
+      "invalidCredentials": "Wrong email or password.",
+      "tooManyRequests": "Too many attempts. Wait a moment and try again.",
+      "network": "Network error. Check your connection and try again."
     }
   },
   "onboarding": {
     "title": "Pick a username",
     "subtitle": "Shown on games and ledgers. Lowercase letters, numbers, underscore.",
+    "username": "Username",
     "submit": "Continue",
     "taken": "That username is taken.",
-    "invalid": "Use 3–32 chars: letters, numbers, underscore."
+    "invalid": "Use 3–32 chars: letters, numbers, underscore.",
+    "noEmail": "Your account has no email on file. Sign out and sign in with Google or email.",
+    "failed": "Could not save your username. Try again."
   },
   "games": {
     "title": "Games",

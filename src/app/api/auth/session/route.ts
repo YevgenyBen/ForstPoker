@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-
-export const dynamic = "force-dynamic";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { SESSION_COOKIE, SESSION_MAX_AGE_MS } from "@/lib/auth/session";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export async function POST(req: NextRequest) {
   try {
-    const { idToken } = (await req.json()) as { idToken?: string };
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "invalid_json_body" }, { status: 400 });
+    }
+    const idToken = (body as { idToken?: string }).idToken;
     if (!idToken) {
       return NextResponse.json({ error: "idToken required" }, { status: 400 });
     }
@@ -25,8 +32,13 @@ export async function POST(req: NextRequest) {
     });
     return res;
   } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "session_failed" }, { status: 401 });
+    console.error("[session POST]", e);
+    const message = e instanceof Error ? e.message : "session_failed";
+    const detail =
+      process.env.NODE_ENV === "development"
+        ? message
+        : "session_failed";
+    return NextResponse.json({ error: detail }, { status: 401 });
   }
 }
 

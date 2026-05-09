@@ -8,6 +8,15 @@ Next.js app for tracking poker **buy-ins / buy-outs** in **whole Israeli shekels
 - **Firebase Authentication** (email/password + Google) + session cookie (`__session`)
 - **Neon Postgres** + **Drizzle ORM**
 
+### Firebase project (CLI-created)
+
+- **Project ID:** `forest-poker-web-a8k3`
+- **Console:** [Firebase console](https://console.firebase.google.com/project/forest-poker-web-a8k3/overview)
+- After setup, enable **Authentication** → **Sign-in method**: turn on **Email/Password** and **Google**.
+- Under **Authentication** → **Settings** → **Authorized domains**, ensure **`localhost`** is listed (required for Google sign-in redirect back from `firebaseapp.com/__/auth/handler` during local dev).
+
+Admin SDK: download the service account JSON from [Service accounts](https://console.firebase.google.com/project/forest-poker-web-a8k3/settings/serviceaccounts/adminsdk), save as `secrets/firebase-adminsdk.json`, and keep `GOOGLE_APPLICATION_CREDENTIALS=./secrets/firebase-adminsdk.json` in `.env`.
+
 ## Setup
 
 1. Copy `.env.example` to `.env.local` and fill values.

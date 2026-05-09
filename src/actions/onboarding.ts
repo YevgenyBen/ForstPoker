@@ -16,23 +16,38 @@ const usernameSchema = z
   .max(32)
   .regex(/^[\p{L}\p{N}_]+$/u);
 
-export async function completeOnboarding(formData: FormData) {
+export type OnboardingActionState =
+  | { error: "invalid" | "taken" | "no_email" | "failed" }
+  | null;
+
+export async function completeOnboarding(
+  _prevState: OnboardingActionState,
+  formData: FormData
+): Promise<OnboardingActionState> {
   const locale = await getLocale();
   const raw = formData.get("username");
   const parsed = usernameSchema.safeParse(raw);
   if (!parsed.success) {
-    return;
+    return { error: "invalid" };
   }
   const username = parsed.data;
+
   const session = await verifySessionCookie();
   if (!session) {
     redirect(`/${locale}/login`);
   }
 
-  const fbUser = await getAdminAuth().getUser(session.uid);
-  const email = fbUser.email;
+  let email: string;
+  try {
+    const fbUser = await getAdminAuth().getUser(session.uid);
+    email = fbUser.email ?? "";
+  } catch (e) {
+    console.error("[onboarding] getUser", e);
+    return { error: "failed" };
+  }
+
   if (!email) {
-    return;
+    return { error: "no_email" };
   }
 
   const [already] = await db
@@ -51,14 +66,19 @@ export async function completeOnboarding(formData: FormData) {
     .limit(1);
 
   if (exists.length) {
-    return;
+    return { error: "taken" };
   }
 
-  await db.insert(appUsers).values({
-    firebaseUid: session.uid,
-    email,
-    username,
-  });
+  try {
+    await db.insert(appUsers).values({
+      firebaseUid: session.uid,
+      email,
+      username,
+    });
+  } catch (e) {
+    console.error("[onboarding] insert", e);
+    return { error: "failed" };
+  }
 
   redirect(`/${locale}/games`);
 }

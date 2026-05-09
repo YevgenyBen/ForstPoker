@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# Firebase Admin SDK key (local only)
+secrets/*.json
+
 # Firebase local
 .firebase/
 firebase-debug.log

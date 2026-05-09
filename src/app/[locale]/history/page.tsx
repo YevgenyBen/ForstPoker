@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { getHistorySummary } from "@/actions/games";
-import { getAppUser } from "@/lib/auth/session";
+import { getViewer } from "@/lib/auth/session";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { HistoryChart } from "@/components/HistoryChart";
 
@@ -12,10 +12,9 @@ export default async function HistoryPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const user = await getAppUser();
-  if (!user) {
-    redirect(`/${locale}/login`);
-  }
+  const v = await getViewer();
+  if (v.kind === "guest") redirect(`/${locale}/login`);
+  if (v.kind === "needs_onboarding") redirect(`/${locale}/onboarding`);
 
   const t = await getTranslations("history");
   const { lifetimeNis, rows } = await getHistorySummary();
@@ -51,8 +50,8 @@ export default async function HistoryPage({
     <main className="flex flex-1 flex-col gap-6">
       <header className="flex items-start justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold">{t("title")}</h1>
-          <p className="text-sm text-[var(--fp-wood-dark)]">{t("subtitle")}</p>
+          <h1 className="text-2xl font-bold text-[var(--fp-ink)]">{t("title")}</h1>
+          <p className="text-sm text-[var(--fp-secondary)]">{t("subtitle")}</p>
         </div>
         <LocaleSwitcher />
       </header>
@@ -100,7 +99,7 @@ export default async function HistoryPage({
                     >
                       {money(r.netNis)}
                     </span>
-                    <span className="text-xs text-[var(--fp-wood-dark)]">
+                    <span className="text-xs text-[var(--fp-secondary)]">
                       {df(r.closedAt)}
                     </span>
                   </span>
