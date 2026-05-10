@@ -61,8 +61,9 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
 
       - name: Start Firebase App Hosting rollout (build from GitHub)
-        # Builds the connected repo at this commit in Cloud Build — same path as console rollouts.
-        run: npx --yes firebase-tools@latest apphosting:rollouts:create forest-poker --git-commit "${{ github.sha }}" --force
+        # -P pins project so CI never targets the wrong Firebase project.
+        # Builds the connected repo at this commit in Cloud Build (see backend env in Firebase console).
+        run: npx --yes firebase-tools@latest -P forest-poker-web-a8k3 apphosting:rollouts:create forest-poker --git-commit "${{ github.sha }}" --force
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
