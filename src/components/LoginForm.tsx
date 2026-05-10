@@ -13,6 +13,7 @@ import {
 } from "firebase/auth";
 import { useLocale, useTranslations } from "next-intl";
 import { getFirebaseAuth } from "@/lib/firebase/client";
+import { safeConsoleError } from "@/lib/logSafeError";
 import { isIdeEmbeddedPreview } from "@/lib/auth/oauthEnvironment";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 
@@ -30,6 +31,10 @@ function authErrorToMessage(
       ? (e as { code: string }).code
       : undefined;
   switch (code) {
+    case "auth/unauthorized-domain":
+      return t("errors.unauthorizedDomain");
+    case "auth/operation-not-allowed":
+      return t("errors.providerDisabled");
     case "auth/email-already-in-use":
       return t("errors.emailInUse");
     case "auth/weak-password":
@@ -47,6 +52,41 @@ function authErrorToMessage(
     default:
       return t("errors.generic");
   }
+}
+
+function sessionEstablishErrorMessage(message: string, t: (key: string) => string): string {
+  if (
+    message === "session_failed" ||
+    message.startsWith("session_") ||
+    message.includes("session_http")
+  ) {
+    return t("errors.sessionCookie");
+  }
+  if (message === "no_token") {
+    return t("errors.generic");
+  }
+  return `${t("errors.generic")} (${message})`;
+}
+
+function isFirebaseAuthError(e: unknown): e is { code: string } {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    "code" in e &&
+    typeof (e as { code: unknown }).code === "string" &&
+    (e as { code: string }).code.startsWith("auth/")
+  );
+}
+
+/** Firebase Auth failures vs. our session HTTP errors after sign-in. */
+function signInFlowErrorMessage(e: unknown, t: (key: string) => string): string {
+  if (isFirebaseAuthError(e)) {
+    return authErrorToMessage(e, t);
+  }
+  if (e instanceof Error) {
+    return sessionEstablishErrorMessage(e.message, t);
+  }
+  return t("errors.generic");
 }
 
 function isLocalDevHost(): boolean {
@@ -130,13 +170,9 @@ export function LoginForm() {
       await establishSession();
       sessionStorage.removeItem(GOOGLE_OAUTH_FLAG);
     } catch (e) {
-      console.error(e);
+      safeConsoleError("LoginForm:syncServerSessionIfNeeded", e);
       const msg = e instanceof Error ? e.message : "";
-      setError(
-        msg && msg !== "session_failed"
-          ? `${t("errors.generic")} (${msg})`
-          : t("errors.generic")
-      );
+      setError(sessionEstablishErrorMessage(msg, t));
     } finally {
       establishingRef.current = false;
       setLoading(false);
@@ -152,7 +188,7 @@ export function LoginForm() {
       try {
         await getRedirectResult(auth);
       } catch (e) {
-        console.error(e);
+        safeConsoleError("LoginForm:getRedirectResult", e);
       }
       if (cancelled) return;
       await syncServerSessionIfNeeded();
@@ -178,8 +214,8 @@ export function LoginForm() {
       }
       await establishSession();
     } catch (e) {
-      console.error(e);
-      setError(authErrorToMessage(e, t));
+      safeConsoleError("LoginForm:emailSubmit", e);
+      setError(signInFlowErrorMessage(e, t));
     } finally {
       setLoading(false);
     }
@@ -208,9 +244,10 @@ export function LoginForm() {
         sessionStorage.setItem(GOOGLE_OAUTH_FLAG, "1");
         await signInWithRedirect(auth, provider);
       }
-    } catch {
+    } catch (e) {
+      safeConsoleError("LoginForm:googleSignIn", e);
       sessionStorage.removeItem(GOOGLE_OAUTH_FLAG);
-      setError(t("errors.generic"));
+      setError(authErrorToMessage(e, t));
     } finally {
       if (isLocalDevHost()) {
         setLoading(false);
@@ -227,7 +264,8 @@ export function LoginForm() {
     try {
       await sendPasswordResetEmail(getFirebaseAuth(), email);
       alert("Check your email for reset instructions.");
-    } catch {
+    } catch (e) {
+      safeConsoleError("LoginForm:forgotPassword", e);
       setError(t("errors.generic"));
     }
   }

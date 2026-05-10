@@ -24,6 +24,9 @@
     "haveAccount": "Already have an account? Sign in",
     "errors": {
       "generic": "Something went wrong. Try again.",
+      "unauthorizedDomain": "This domain is not allowed for Firebase sign-in. In Firebase Console → Authentication → Settings → Authorized domains, add your App Hosting hostname (the …hosted.app URL, no :8080 port).",
+      "sessionCookie": "Sign-in worked, but the server could not create a session cookie. In App Hosting environment variables, verify FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY match your Firebase service account.",
+      "providerDisabled": "That sign-in method is disabled in Firebase Authentication → Sign-in method.",
       "emailInUse": "That email is already registered. Sign in instead.",
       "weakPassword": "Password must be at least 6 characters.",
       "invalidEmail": "Enter a valid email address.",

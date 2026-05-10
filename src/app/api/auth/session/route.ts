@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { safeConsoleError } from "@/lib/logSafeError";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { SESSION_COOKIE, SESSION_MAX_AGE_MS } from "@/lib/auth/session";
 
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
     });
     return res;
   } catch (e) {
-    console.error("[session POST]", e);
+    safeConsoleError("api/auth/session POST", e);
     const message = e instanceof Error ? e.message : "session_failed";
     const detail =
       process.env.NODE_ENV === "development"

@@ -50,6 +50,12 @@ Connect this repo in the Firebase console, set secrets `DATABASE_URL`, Firebase 
 
 If you **rename the GitHub repository**, open Firebase → App Hosting → your backend → **connected repository** and reconnect or verify the link so deploys still run.
 
+**Google sign-in (production):**
+
+1. Firebase Console → **Authentication** → **Settings** → **Authorized domains**: add your App Hosting URL host (for example `forest-poker--forest-poker-web-a8k3.us-east4.hosted.app`), **without** appending `:8080`.
+2. Same section usually includes `localhost` and `<project-id>.firebaseapp.com`; keep **NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN** as `<project-id>.firebaseapp.com` unless you use a custom auth domain.
+3. App Hosting env must include valid **FIREBASE_CLIENT_EMAIL** and **FIREBASE_PRIVATE_KEY** so `/api/auth/session` can mint the `__session` cookie after Google redirects back.
+
 ## Scripts
 
 | Script        | Description              |

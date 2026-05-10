@@ -20,6 +20,7 @@ import {
   minimizeTransfers,
   netSum,
 } from "@/lib/settlement";
+import { safeConsoleError } from "@/lib/logSafeError";
 
 const titleSchema = z.string().trim().min(1).max(120);
 const amountSchema = z.coerce.number().int().positive();
@@ -168,6 +169,7 @@ export async function closeGame(gameId: string) {
     if (msg === "already_closed") return { error: "already_closed" as const };
     if (msg === "bad_balance") return { error: "bad_balance" as const };
     if (msg === "not_member") return { error: "not_member" as const };
+    safeConsoleError("games:closeGame", e);
     throw e;
   }
 

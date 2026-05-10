@@ -24,6 +24,9 @@
     "haveAccount": "יש חשבון? התחברות",
     "errors": {
       "generic": "משהו השתבש. נסה שוב.",
+      "unauthorizedDomain": "הדומיין הזה לא מורשה להתחברות ב-Firebase. ב-Firebase Console → Authentication → Settings → Authorized domains הוסף את כתובת ה-host של App Hosting (…hosted.app, בלי פורט :8080).",
+      "sessionCookie": "ההתחברות הצליחה, אבל השרת לא יצר עוגיית session. בדוק ב-App Hosting את משתני הסביבה FIREBASE_CLIENT_EMAIL ו-FIREBASE_PRIVATE_KEY מול שירות החשבון ב-Firebase.",
+      "providerDisabled": "שיטת ההתחברות מושבתת ב-Firebase Authentication → Sign-in method.",
       "emailInUse": "האימייל כבר רשום. התחבר במקום.",
       "weakPassword": "הסיסמה חייבת להכיל לפחות 6 תווים.",
       "invalidEmail": "הזן כתובת אימייל תקינה.",

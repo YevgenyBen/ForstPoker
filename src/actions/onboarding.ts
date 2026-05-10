@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { appUsers } from "@/db/schema";
 import { verifySessionCookie } from "@/lib/auth/session";
 import { getAdminAuth } from "@/lib/firebase/admin";
+import { safeConsoleError } from "@/lib/logSafeError";
 
 const usernameSchema = z
   .string()
@@ -42,7 +43,7 @@ export async function completeOnboarding(
     const fbUser = await getAdminAuth().getUser(session.uid);
     email = fbUser.email ?? "";
   } catch (e) {
-    console.error("[onboarding] getUser", e);
+    safeConsoleError("onboarding:getUser", e);
     return { error: "failed" };
   }
 
@@ -76,7 +77,7 @@ export async function completeOnboarding(
       username,
     });
   } catch (e) {
-    console.error("[onboarding] insert", e);
+    safeConsoleError("onboarding:insertAppUser", e);
     return { error: "failed" };
   }
 
