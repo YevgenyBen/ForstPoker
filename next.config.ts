@@ -7,6 +7,14 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig: NextConfig = {
   /** Required for Firebase App Hosting (Cloud Run bundles the standalone server output). */
   output: "standalone",
+  /**
+   * Turbopack traces only part of `@swc/helpers` into standalone output (often CJS). Runtime still
+   * resolves `esm/*` paths → MODULE_NOT_FOUND on Cloud Run. Force-include the full package.
+   * @see https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats
+   */
+  outputFileTracingIncludes: {
+    "**": ["./node_modules/@swc/helpers/**/*"],
+  },
   env: {
     NEXT_PUBLIC_APP_VERSION: pkg.version,
   },
