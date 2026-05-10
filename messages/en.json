@@ -9,7 +9,8 @@
     "career": "Career",
     "profile": "Profile",
     "login": "Log in",
-    "logout": "Log out"
+    "logout": "Log out",
+    "signInToNavigate": "Sign in to use Games, League, Career, and Profile"
   },
   "auth": {
     "email": "Email",

@@ -14,6 +14,10 @@ function navButtonClass(active: boolean): string {
   }`;
 }
 
+function navAppLinkDisabledClass(): string {
+  return `flex min-h-11 min-w-0 flex-1 cursor-not-allowed items-center justify-center rounded-lg p-3 text-center text-sm font-medium text-[var(--fp-secondary)] opacity-40`;
+}
+
 export function BottomNav() {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
@@ -64,6 +68,8 @@ export function BottomNav() {
     { href: `${base}/player`, label: t("profile") },
   ];
 
+  const appNavLocked = loggedIn === false;
+
   const appVersion = process.env.NEXT_PUBLIC_APP_VERSION;
 
   return (
@@ -72,6 +78,18 @@ export function BottomNav() {
         {items.map(({ href, label }) => {
           const active =
             pathname === href || pathname.startsWith(`${href}/`);
+          if (appNavLocked) {
+            return (
+              <span
+                key={href}
+                className={navAppLinkDisabledClass()}
+                aria-disabled="true"
+                title={t("signInToNavigate")}
+              >
+                {label}
+              </span>
+            );
+          }
           return (
             <Link key={href} href={href} className={navButtonClass(active)}>
               {label}
