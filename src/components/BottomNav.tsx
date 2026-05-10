@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { logoutSession } from "@/lib/auth/clientLogout";
@@ -18,6 +19,15 @@ function navAppLinkDisabledClass(): string {
   return `flex min-h-11 min-w-0 flex-1 cursor-not-allowed items-center justify-center rounded-lg p-3 text-center text-sm font-medium text-[var(--fp-secondary)] opacity-40`;
 }
 
+const pokerEasterEggs = [
+  "If there weren't luck involved, I would win every time. - Phil Hellmuth",
+  "In the long run, there is no luck in poker. But the short run is longer than most people know. - Rick Bennet",
+  "Poker is a hard way to make an easy living. - Doyle Brunson",
+  "A chip and a chair. - Jack Straus",
+  "Why did the poker player bring sunscreen? To avoid getting burned on the river.",
+  "I never bluff. I just tell stories with confidence.",
+] as const;
+
 export function BottomNav() {
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
@@ -27,6 +37,7 @@ export function BottomNav() {
   const base = `/${locale}`;
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [easterEgg, setEasterEgg] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,6 +68,11 @@ export function BottomNav() {
     }
   }
 
+  function openEasterEgg() {
+    const idx = Math.floor(Math.random() * pokerEasterEggs.length);
+    setEasterEgg(pokerEasterEggs[idx] ?? pokerEasterEggs[0]);
+  }
+
   const loginHref = `${base}/login`;
   const loginActive =
     pathname === loginHref || pathname.startsWith(`${loginHref}/`);
@@ -73,6 +89,7 @@ export function BottomNav() {
   const appVersion = process.env.NEXT_PUBLIC_APP_VERSION;
 
   return (
+    <>
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--fp-wood-mid)] bg-[var(--fp-panel)]/95 backdrop-blur-sm safe-area-pb">
       <div className="mx-auto flex max-w-lg gap-1 px-3 py-2">
         {items.map(({ href, label }) => {
@@ -120,10 +137,50 @@ export function BottomNav() {
         )}
       </div>
       {appVersion ? (
-        <div className="border-t border-[var(--fp-wood-mid)]/40 px-3 py-1 text-center text-[10px] leading-tight text-[var(--fp-ink)]/45">
-          v{appVersion}
+        <div className="flex justify-center border-t border-[var(--fp-wood-mid)]/40 px-3 py-1 text-[10px] leading-tight text-[var(--fp-ink)]/45">
+          <button
+            type="button"
+            onClick={openEasterEgg}
+            className="rounded px-1 transition hover:bg-[var(--fp-parchment)]/60 hover:text-[var(--fp-ink)]"
+            aria-label="Open poker quote"
+            title="Poker quote"
+          >
+            v{appVersion}
+          </button>
         </div>
       ) : null}
     </nav>
+    {easterEgg
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[100] flex min-h-[100dvh] w-full items-center justify-center bg-black/60 px-4"
+            onClick={() => setEasterEgg(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Poker easter egg"
+          >
+            <div
+              className="flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl border border-[var(--fp-wood-mid)]/40 bg-[var(--fp-panel)] p-4 text-center shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="w-full text-sm font-semibold text-[var(--fp-brass)]">
+                Poker easter egg
+              </p>
+              <p className="w-full text-sm leading-relaxed text-[var(--fp-ink)]" dir="auto">
+                {easterEgg}
+              </p>
+              <button
+                type="button"
+                onClick={() => setEasterEgg(null)}
+                className="min-h-10 w-full max-w-full rounded-lg bg-[var(--fp-moss)] px-4 text-sm font-semibold text-white"
+              >
+                {tCommon("cancel")}
+              </button>
+            </div>
+          </div>,
+          document.body
+        )
+      : null}
+    </>
   );
 }

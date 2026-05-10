@@ -59,8 +59,11 @@ function GameRow({
           href={`/${locale}/games/${g.id}`}
           className="flex min-w-0 flex-1 flex-col gap-2 px-4 py-3"
         >
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <span className="font-medium text-[var(--fp-ink)]" dir="auto">
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+            <span
+              className="min-w-0 flex-1 font-medium text-[var(--fp-ink)]"
+              dir="auto"
+            >
               {g.title}
             </span>
             {g.status !== "scheduled" && (
