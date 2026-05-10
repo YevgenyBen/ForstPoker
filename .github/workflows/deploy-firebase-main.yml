@@ -5,7 +5,8 @@
 # 0.1.0; the repo is bumped to 0.2.0 afterward.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
-#   FIREBASE_TOKEN       — from `npx firebase-tools@latest login:ci`
+#   FIREBASE_TOKEN       — from `npx firebase-tools@latest login:ci` (deprecated by CLI;
+#                         consider a service account JSON + GOOGLE_APPLICATION_CREDENTIALS later)
 #   DATABASE_URL         — Neon URL (optional for build; placeholder used if unset)
 #   NEXT_PUBLIC_FIREBASE_* — same values as .env / Firebase console (recommended for production bundles)
 #
@@ -56,9 +57,11 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
 
       - name: Deploy to Firebase App Hosting
-        run: npx --yes firebase-tools@latest deploy --only apphosting --non-interactive
+        # --force bypasses "deploy local source?" (CI cannot answer prompts; --non-interactive alone is not enough)
+        run: npx --yes firebase-tools@latest deploy --only apphosting --non-interactive --force
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          CI: true
 
       - name: Bump minor version for next deploy
         if: github.event_name == 'push'
