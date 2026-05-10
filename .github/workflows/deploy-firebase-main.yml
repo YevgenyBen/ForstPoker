@@ -8,6 +8,9 @@
 #   FIREBASE_TOKEN       — from `npx firebase-tools@latest login:ci`
 #   DATABASE_URL         — Neon URL (optional for build; placeholder used if unset)
 #   NEXT_PUBLIC_FIREBASE_* — same values as .env / Firebase console (recommended for production bundles)
+#
+# Manual rerun: repo → Actions → "Deploy main to Firebase" → Run workflow (deploy only;
+# version bump is skipped so semver does not advance on reruns).
 
 name: Deploy main to Firebase
 
@@ -15,6 +18,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -25,7 +29,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    if: ${{ github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message || '', '[skip ci]') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -57,9 +61,11 @@ jobs:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
       - name: Bump minor version for next deploy
+        if: github.event_name == 'push'
         run: node scripts/bump-minor-version.mjs
 
       - name: Commit version bump
+        if: github.event_name == 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
