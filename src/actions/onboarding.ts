@@ -1,6 +1,5 @@
 "use server";
 
-import { z } from "zod";
 import { eq, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
@@ -9,13 +8,7 @@ import { appUsers } from "@/db/schema";
 import { verifySessionCookie } from "@/lib/auth/session";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { safeConsoleError } from "@/lib/logSafeError";
-
-const usernameSchema = z
-  .string()
-  .trim()
-  .min(3)
-  .max(32)
-  .regex(/^[\p{L}\p{N}_]+$/u);
+import { usernameSchema } from "@/lib/username";
 
 export type OnboardingActionState =
   | { error: "invalid" | "taken" | "no_email" | "failed" }

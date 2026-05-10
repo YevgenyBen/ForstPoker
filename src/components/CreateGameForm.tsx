@@ -4,7 +4,12 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { createGame } from "@/actions/games";
 
-export function CreateGameForm() {
+type Props = {
+  /** Prefill from profile (`app_users.location`). */
+  defaultLocation?: string;
+};
+
+export function CreateGameForm({ defaultLocation = "" }: Props) {
   const t = useTranslations("games");
   const tCommon = useTranslations("common");
   const [expanded, setExpanded] = useState(false);
@@ -64,6 +69,7 @@ export function CreateGameForm() {
               dir="auto"
               autoComplete="street-address"
               placeholder=""
+              defaultValue={defaultLocation}
               className="fp-field min-h-11 w-full rounded-xl border border-[var(--fp-wood-mid)]/40 px-3 py-2 shadow-inner"
             />
           </label>

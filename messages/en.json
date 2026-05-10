@@ -7,6 +7,7 @@
     "games": "Games",
     "league": "League",
     "career": "Career",
+    "profile": "Profile",
     "login": "Log in",
     "logout": "Log out"
   },
@@ -47,6 +48,20 @@
     "noEmail": "Your account has no email on file. Sign out and sign in with Google or email.",
     "failed": "Could not save your username. Try again."
   },
+  "player": {
+    "title": "Your profile",
+    "subtitle": "Username appears on games and ledgers. Location is used when a scheduled game has no venue.",
+    "username": "Username",
+    "usernameHint": "Letters, numbers, and underscore (3–32 characters).",
+    "location": "Default location",
+    "locationHint": "Optional. Shown for your hosted games if no specific place is set.",
+    "submit": "Save changes",
+    "saved": "Saved.",
+    "invalidUsername": "Use 3–32 characters: letters, numbers, underscore.",
+    "invalidLocation": "Location must be at most 500 characters.",
+    "taken": "That username is taken.",
+    "failed": "Could not save changes. Try again."
+  },
   "games": {
     "title": "Games",
     "create": "New game",
@@ -65,7 +80,9 @@
     "statusClosed": "Closed",
     "statusScheduled": "Scheduled",
     "hostLabel": "Host",
+    "whenLabel": "When",
     "locationShort": "Where",
+    "openInWaze": "Open in Waze",
     "openTable": "Open table",
     "ledgerWhenOpen": "Ledger unlocks after you open the table.",
     "rsvpYourPick": "Your RSVP",

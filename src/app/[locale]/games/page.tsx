@@ -12,6 +12,7 @@ import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { CancelScheduledGameButton } from "@/components/CancelScheduledGameButton";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { CreateGameForm } from "@/components/CreateGameForm";
+import { LocationWazeLink } from "@/components/LocationWazeLink";
 import {
   formatDateDdMmYyyy,
   formatDateTimeDdMmYyyyHm,
@@ -81,7 +82,8 @@ function GameRow({
                 {g.initiatorUsername}
               </p>
               {g.scheduledStartAt && (
-                <p className="text-[var(--fp-ink)]">
+                <p dir="auto">
+                  <span className="font-medium text-[var(--fp-ink)]">{t("whenLabel")}: </span>
                   {formatDateDdMmYyyy(g.scheduledStartAt)}
                 </p>
               )}
@@ -92,7 +94,12 @@ function GameRow({
               ) : null}
               <p dir="auto">
                 <span className="font-medium text-[var(--fp-ink)]">{t("locationShort")}: </span>
-                {g.gameLocation?.trim() || g.initiatorLocation?.trim() || "—"}
+                <LocationWazeLink
+                  address={
+                    g.gameLocation?.trim() || g.initiatorLocation?.trim() || ""
+                  }
+                  openInWazeLabel={t("openInWaze")}
+                />
               </p>
             </div>
           )}
@@ -171,7 +178,7 @@ export default async function GamesPage({
       </header>
 
       <section className="rounded-2xl border border-[var(--fp-wood-mid)]/30 bg-[var(--fp-panel)] p-4 shadow-sm">
-        <CreateGameForm />
+        <CreateGameForm defaultLocation={user.location ?? ""} />
       </section>
 
       <section className="space-y-8">

@@ -11,6 +11,7 @@ import { CloseGameButton } from "@/components/CloseGameButton";
 import { CancelScheduledGameButton } from "@/components/CancelScheduledGameButton";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { OpenGameButton } from "@/components/OpenGameButton";
+import { LocationWazeLink } from "@/components/LocationWazeLink";
 import { GameRsvpPanel } from "@/components/GameRsvpPanel";
 import {
   formatDateDdMmYyyy,
@@ -101,7 +102,10 @@ export default async function GameDetailPage({
           ) : null}
           <p dir="auto">
             <span className="font-semibold text-[var(--fp-ink)]">{t("locationShort")}: </span>
-            {game.location?.trim() || initiatorLocation?.trim() || "—"}
+            <LocationWazeLink
+              address={game.location?.trim() || initiatorLocation?.trim() || ""}
+              openInWazeLabel={t("openInWaze")}
+            />
           </p>
         </section>
       )}

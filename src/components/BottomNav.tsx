@@ -61,6 +61,7 @@ export function BottomNav() {
     { href: `${base}/games`, label: t("games") },
     { href: `${base}/league`, label: t("league") },
     { href: `${base}/career`, label: t("career") },
+    { href: `${base}/player`, label: t("profile") },
   ];
 
   const appVersion = process.env.NEXT_PUBLIC_APP_VERSION;
