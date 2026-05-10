@@ -1,7 +1,16 @@
 # Firebase App Hosting — https://firebase.google.com/docs/app-hosting/configure
+#
+# Cloud Build does not see GitHub Actions secrets. Add production env vars here OR in
+# Firebase console → App Hosting → backend → Environment (console overrides this file).
+# Copy keys from `.env.example`: DATABASE_URL, NEXT_PUBLIC_FIREBASE_*,
+# FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY (same values as local / GitHub).
+#
+# Optional: use `npx firebase-tools apphosting:secrets:set NAME` and reference secrets
+# in an `env:` block — see https://firebase.google.com/docs/app-hosting/configure
+
 runConfig:
   cpu: 1
-  memoryMiB: 512
+  memoryMiB: 1024
   minInstances: 0
   maxInstances: 100
   concurrency: 80
