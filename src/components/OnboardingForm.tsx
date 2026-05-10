@@ -54,7 +54,7 @@ export function OnboardingForm() {
           aria-invalid={msg ? true : undefined}
           aria-describedby={msg ? "username-error" : undefined}
           disabled={isPending}
-          className="w-full min-h-11 rounded-lg border border-[var(--fp-wood-mid)]/50 bg-white px-3 py-2 text-base text-neutral-900 placeholder:text-neutral-500"
+          className="fp-field w-full min-h-11 rounded-lg border border-[var(--fp-wood-mid)]/50 px-3 py-2 text-base"
           dir="auto"
           autoComplete="username"
         />

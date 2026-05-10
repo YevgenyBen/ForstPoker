@@ -346,7 +346,7 @@ export function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full rounded-lg border border-[var(--fp-wood-mid)]/40 bg-white px-3 py-2 text-neutral-900 placeholder:text-neutral-500"
+            className="fp-field w-full rounded-lg border border-[var(--fp-wood-mid)]/40 px-3 py-2"
             dir="ltr"
           />
         </div>
@@ -359,7 +359,7 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="w-full rounded-lg border border-[var(--fp-wood-mid)]/40 bg-white px-3 py-2 text-neutral-900 placeholder:text-neutral-500"
+            className="fp-field w-full rounded-lg border border-[var(--fp-wood-mid)]/40 px-3 py-2"
             dir="ltr"
           />
         </div>

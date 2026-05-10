@@ -6,44 +6,76 @@ import { createGame } from "@/actions/games";
 
 export function CreateGameForm() {
   const t = useTranslations("games");
-  const [utcIso, setUtcIso] = useState("");
+  const tCommon = useTranslations("common");
+  const [expanded, setExpanded] = useState(false);
+  const [dateStr, setDateStr] = useState("");
 
   return (
-    <form action={createGame} className="flex flex-col gap-3">
-      <label className="flex flex-col gap-1 text-sm font-medium text-[var(--fp-ink)]">
-        <span>{t("scheduledStart")}</span>
-        <input
-          type="datetime-local"
-          required
-          className="min-h-11 rounded-xl border border-[var(--fp-wood-mid)]/35 bg-white px-3 py-2 text-[var(--fp-ink)] shadow-inner"
-          onChange={(e) => {
-            const v = e.target.value;
-            if (!v) {
-              setUtcIso("");
-              return;
-            }
-            const d = new Date(v);
-            if (!Number.isNaN(d.getTime())) setUtcIso(d.toISOString());
-          }}
-        />
-      </label>
-      <input type="hidden" name="scheduled_start_utc" value={utcIso} />
-      <label className="flex flex-col gap-1 text-sm font-medium text-[var(--fp-ink)]">
-        <span>{t("gameNotes")}</span>
-        <textarea
-          name="notes"
-          rows={3}
-          dir="auto"
-          className="min-h-[5rem] rounded-xl border border-[var(--fp-wood-mid)]/35 bg-white px-3 py-2 text-[var(--fp-ink)] shadow-inner"
-        />
-      </label>
-      <button
-        type="submit"
-        disabled={!utcIso}
-        className="min-h-11 rounded-xl bg-[var(--fp-moss)] px-6 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45"
-      >
-        {t("submitCreate")}
-      </button>
-    </form>
+    <div className="flex flex-col gap-3">
+      {!expanded ? (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="min-h-11 w-full rounded-xl bg-[var(--fp-moss)] px-6 font-semibold text-white transition hover:brightness-105"
+        >
+          {t("create")}
+        </button>
+      ) : (
+        <form action={createGame} className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-[var(--fp-ink)]">{t("create")}</h2>
+            <button
+              type="button"
+              onClick={() => {
+                setExpanded(false);
+                setDateStr("");
+              }}
+              className="text-sm font-medium text-[var(--fp-brass)] underline decoration-[var(--fp-brass)]/70 underline-offset-4 hover:brightness-110"
+            >
+              {tCommon("cancel")}
+            </button>
+          </div>
+          <label className="flex flex-col gap-1 text-sm font-medium text-[var(--fp-ink)]">
+            <span>{t("scheduledStart")}</span>
+            <input
+              type="date"
+              name="scheduled_date"
+              required
+              value={dateStr}
+              onChange={(e) => setDateStr(e.target.value)}
+              className="fp-field min-h-11 w-full rounded-xl border border-[var(--fp-wood-mid)]/40 px-3 py-2 shadow-inner"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-medium text-[var(--fp-ink)]">
+            <span>{t("gameNotes")}</span>
+            <input
+              type="text"
+              name="notes"
+              dir="auto"
+              autoComplete="off"
+              className="fp-field min-h-11 w-full rounded-xl border border-[var(--fp-wood-mid)]/40 px-3 py-2 shadow-inner"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-medium text-[var(--fp-ink)]">
+            <span>{t("gameLocationField")}</span>
+            <input
+              type="text"
+              name="location"
+              dir="auto"
+              autoComplete="street-address"
+              placeholder=""
+              className="fp-field min-h-11 w-full rounded-xl border border-[var(--fp-wood-mid)]/40 px-3 py-2 shadow-inner"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={!dateStr}
+            className="min-h-11 rounded-xl bg-[var(--fp-moss)] px-6 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            {t("submitCreate")}
+          </button>
+        </form>
+      )}
+    </div>
   );
 }

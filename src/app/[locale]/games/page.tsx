@@ -8,18 +8,19 @@ import { canDeleteGames } from "@/lib/auth/gameAdmin";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { CreateGameForm } from "@/components/CreateGameForm";
-import { UserLocationForm } from "@/components/UserLocationForm";
 
 function GameRow({
   g,
   locale,
   tf,
+  formatGameDay,
   showGameDelete,
   t,
 }: {
   g: ListedGameRow;
   locale: string;
   tf: (d: Date) => string;
+  formatGameDay: (d: Date) => string;
   showGameDelete: boolean;
   t: (key: string) => string;
 }) {
@@ -72,7 +73,7 @@ function GameRow({
                 {g.initiatorUsername}
               </p>
               {g.scheduledStartAt && (
-                <p className="tabular-nums text-[var(--fp-ink)]">{tf(g.scheduledStartAt)}</p>
+                <p className="text-[var(--fp-ink)]">{formatGameDay(g.scheduledStartAt)}</p>
               )}
               {g.notes?.trim() ? (
                 <p className="line-clamp-4 text-[var(--fp-ink)]" dir="auto">
@@ -81,7 +82,7 @@ function GameRow({
               ) : null}
               <p dir="auto">
                 <span className="font-medium text-[var(--fp-ink)]">{t("locationShort")}: </span>
-                {g.initiatorLocation?.trim() ? g.initiatorLocation : "—"}
+                {g.gameLocation?.trim() || g.initiatorLocation?.trim() || "—"}
               </p>
             </div>
           )}
@@ -141,6 +142,12 @@ export default async function GamesPage({
       timeStyle: "short",
     }).format(d);
 
+  const formatGameDay = (d: Date) =>
+    new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
+      dateStyle: "medium",
+      timeZone: "Asia/Jerusalem",
+    }).format(d);
+
   const totalCount = upcoming.length + current.length + past.length;
 
   return (
@@ -155,10 +162,7 @@ export default async function GamesPage({
         <LocaleSwitcher />
       </header>
 
-      <UserLocationForm initialLocation={user.location ?? null} />
-
       <section className="rounded-2xl border border-[var(--fp-wood-mid)]/30 bg-[var(--fp-panel)] p-4 shadow-sm">
-        <h2 className="mb-3 font-semibold text-[var(--fp-ink)]">{t("create")}</h2>
         <CreateGameForm />
       </section>
 
@@ -179,6 +183,7 @@ export default async function GamesPage({
                       g={g}
                       locale={locale}
                       tf={tf}
+                      formatGameDay={formatGameDay}
                       showGameDelete={showGameDelete}
                       t={t}
                     />
@@ -196,6 +201,7 @@ export default async function GamesPage({
                       g={g}
                       locale={locale}
                       tf={tf}
+                      formatGameDay={formatGameDay}
                       showGameDelete={showGameDelete}
                       t={t}
                     />
@@ -213,6 +219,7 @@ export default async function GamesPage({
                       g={g}
                       locale={locale}
                       tf={tf}
+                      formatGameDay={formatGameDay}
                       showGameDelete={showGameDelete}
                       t={t}
                     />

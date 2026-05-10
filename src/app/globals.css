@@ -17,7 +17,10 @@
   --fp-sage: #c5d1c3;
   /** Hints, meta, subtitles — must stay legible on cream / panel */
   --fp-secondary: #3d2a1f;
+  /** Form controls: solid bg so typed text stays high-contrast vs body --fp-ink */
+  --fp-field-bg: #ffffff;
 }
+
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -31,6 +34,7 @@
     --fp-sage: #3d453d;
     --fp-brass: #e4b84a;
     --fp-secondary: #e8dfd2;
+    --fp-field-bg: #2c2824;
   }
 }
 
@@ -116,4 +120,29 @@ input[type="reset"]:disabled {
 
 .safe-area-pb {
   padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/**
+ * Inputs/textareas: same foreground as body (--fp-ink) on a dedicated field surface.
+ * Fixes invisible light-on-white when OS dark mode sets --fp-ink to a light cream.
+ */
+.fp-field {
+  background-color: var(--fp-field-bg);
+  color: var(--fp-ink);
+  caret-color: var(--fp-ink);
+  color-scheme: light dark;
+}
+
+.fp-field::placeholder {
+  color: var(--fp-secondary);
+  opacity: 0.85;
+}
+
+.fp-field:disabled {
+  opacity: 0.65;
+}
+
+.fp-field:focus {
+  outline: 2px solid color-mix(in srgb, var(--fp-brass) 55%, transparent);
+  outline-offset: 1px;
 }

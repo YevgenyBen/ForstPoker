@@ -52,6 +52,8 @@ export const games = pgTable("games", {
   /** When play is planned to start (required for scheduled games). */
   scheduledStartAt: timestamp("scheduled_start_at", { withTimezone: true }),
   notes: text("notes"),
+  /** Optional venue for this session (overrides host default when set). UTF-8. */
+  location: text("location"),
 });
 
 export const gameMembers = pgTable(

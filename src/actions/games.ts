@@ -25,7 +25,27 @@ import { safeConsoleError } from "@/lib/logSafeError";
 
 const amountSchema = z.coerce.number().int().positive();
 
-const notesSchema = z.string().max(2000).optional();
+const notesSchema = z.string().max(500).optional();
+const gameLocationSchema = z.string().max(500).optional();
+
+/** Calendar date from `<input type="date">` → stable instant (noon UTC on that civil day). */
+function parseScheduledDateOnly(isoDate: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate.trim());
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const d = Number(m[3]);
+  const dt = new Date(Date.UTC(y, mo - 1, d, 12, 0, 0));
+  if (Number.isNaN(dt.getTime())) return null;
+  if (
+    dt.getUTCFullYear() !== y ||
+    dt.getUTCMonth() !== mo - 1 ||
+    dt.getUTCDate() !== d
+  ) {
+    return null;
+  }
+  return dt;
+}
 
 /** Next game serial = existing row count + 1; title `Game {n} - dd/mm/yyyy` (Israel date). */
 function nextGameTitle(existingCount: number, at = new Date()) {
@@ -50,19 +70,23 @@ async function requireUser() {
 export async function createGame(formData: FormData) {
   const { user, locale } = await requireUser();
 
-  const isoRaw = formData.get("scheduled_start_utc")?.toString() ?? "";
+  const dateRaw = formData.get("scheduled_date")?.toString() ?? "";
   const notesRaw = formData.get("notes")?.toString() ?? "";
-  const startParse = z.string().min(1).safeParse(isoRaw);
-  if (!startParse.success) {
-    redirect(`/${locale}/games`);
-  }
-  const scheduledStart = new Date(startParse.data);
-  if (Number.isNaN(scheduledStart.getTime())) {
+  const locationRaw = formData.get("location")?.toString() ?? "";
+  const scheduledStart = parseScheduledDateOnly(dateRaw);
+  if (!scheduledStart) {
     redirect(`/${locale}/games`);
   }
 
   const notesResult = notesSchema.safeParse(notesRaw.trim() || undefined);
   const notes = notesResult.success ? (notesResult.data ?? null) : null;
+
+  const locationResult = gameLocationSchema.safeParse(
+    locationRaw.trim() || undefined
+  );
+  const location = locationResult.success
+    ? (locationResult.data ?? null)
+    : null;
 
   const [row] = await db.select({ n: count() }).from(games);
   const title = nextGameTitle(Number(row?.n ?? 0), scheduledStart);
@@ -75,6 +99,7 @@ export async function createGame(formData: FormData) {
       status: "scheduled",
       scheduledStartAt: scheduledStart,
       notes,
+      location,
     })
     .returning({ id: games.id });
 
@@ -114,23 +139,6 @@ export async function openGame(gameId: string) {
   revalidatePath(`/${locale}/games/${gameId}`);
   revalidatePath(`/${locale}/league`);
   return { ok: true as const };
-}
-
-const locationSchema = z.string().max(500);
-
-export async function updateMyLocation(formData: FormData) {
-  const { user, locale } = await requireUser();
-  const raw = formData.get("location")?.toString() ?? "";
-  const parsed = locationSchema.safeParse(raw);
-  if (!parsed.success) return;
-
-  const value = parsed.data.trim() || null;
-  await db
-    .update(appUsers)
-    .set({ location: value })
-    .where(eq(appUsers.id, user.id));
-
-  revalidatePath(`/${locale}/games`);
 }
 
 export async function joinGame(gameId: string) {
@@ -286,6 +294,7 @@ export type ListedGameRow = {
   closedAt: Date | null;
   scheduledStartAt: Date | null;
   notes: string | null;
+  gameLocation: string | null;
   initiatorUsername: string;
   initiatorLocation: string | null;
 };
@@ -303,6 +312,7 @@ export async function listGamesBySection() {
       closedAt: games.closedAt,
       scheduledStartAt: games.scheduledStartAt,
       notes: games.notes,
+      gameLocation: games.location,
       initiatorUsername: initiator.username,
       initiatorLocation: initiator.location,
     })

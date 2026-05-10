@@ -45,6 +45,12 @@ export default async function GameDetailPage({
       timeStyle: "short",
     }).format(d);
 
+  const formatGameDay = (d: Date) =>
+    new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
+      dateStyle: "medium",
+      timeZone: "Asia/Jerusalem",
+    }).format(d);
+
   const money = (n: number) =>
     new Intl.NumberFormat(locale === "he" ? "he-IL" : "en-IL", {
       style: "currency",
@@ -72,7 +78,7 @@ export default async function GameDetailPage({
                 ? t("statusOpen")
                 : t("statusClosed")}
             {game.status === "scheduled" && game.scheduledStartAt
-              ? ` · ${tf(game.scheduledStartAt)}`
+              ? ` · ${formatGameDay(game.scheduledStartAt)}`
               : game.status !== "scheduled"
                 ? ` · ${tf(game.createdAt)}`
                 : ""}
@@ -94,7 +100,7 @@ export default async function GameDetailPage({
           ) : null}
           <p dir="auto">
             <span className="font-semibold text-[var(--fp-ink)]">{t("locationShort")}: </span>
-            {initiatorLocation?.trim() ? initiatorLocation : "—"}
+            {game.location?.trim() || initiatorLocation?.trim() || "—"}
           </p>
         </section>
       )}

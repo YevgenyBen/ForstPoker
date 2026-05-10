@@ -50,7 +50,7 @@ export function GameLedgerForm({ gameId }: Props) {
           className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${
             kind === "buy_in"
               ? "bg-[var(--fp-moss)] text-white"
-              : "bg-white/90 text-neutral-900 shadow-sm"
+              : "border border-[var(--fp-wood-mid)]/35 bg-[var(--fp-field-bg)] text-[var(--fp-ink)] shadow-sm"
           }`}
         >
           {t("buyIn")}
@@ -61,7 +61,7 @@ export function GameLedgerForm({ gameId }: Props) {
           className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium ${
             kind === "buy_out"
               ? "bg-[var(--fp-felt)] text-white"
-              : "bg-white/90 text-neutral-900 shadow-sm"
+              : "border border-[var(--fp-wood-mid)]/35 bg-[var(--fp-field-bg)] text-[var(--fp-ink)] shadow-sm"
           }`}
         >
           {t("buyOut")}
@@ -77,7 +77,7 @@ export function GameLedgerForm({ gameId }: Props) {
           onChange={(e) => setAmount(e.target.value)}
           required
           disabled={loading}
-          className="w-full rounded-lg border border-[var(--fp-wood-mid)]/40 bg-white px-3 py-2 text-neutral-900 placeholder:text-neutral-500"
+          className="fp-field w-full rounded-lg border border-[var(--fp-wood-mid)]/40 px-3 py-2"
           dir="ltr"
         />
       </div>
