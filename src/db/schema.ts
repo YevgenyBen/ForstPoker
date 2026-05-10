@@ -16,6 +16,8 @@ export const gameStatusEnum = pgEnum("game_status", [
   "closed",
 ]);
 export const ledgerKindEnum = pgEnum("ledger_kind", ["buy_in", "buy_out"]);
+/** RSVP for upcoming (scheduled) games */
+export const rsvpStatusEnum = pgEnum("rsvp_status", ["yes", "maybe", "no"]);
 
 export const appUsers = pgTable(
   "app_users",
@@ -55,6 +57,23 @@ export const games = pgTable("games", {
   /** Optional venue for this session (overrides host default when set). UTF-8. */
   location: text("location"),
 });
+
+export const gameRsvps = pgTable(
+  "game_rsvps",
+  {
+    gameId: uuid("game_id")
+      .notNull()
+      .references(() => games.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => appUsers.id, { onDelete: "cascade" }),
+    status: rsvpStatusEnum("status").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.gameId, t.userId] })]
+);
 
 export const gameMembers = pgTable(
   "game_members",

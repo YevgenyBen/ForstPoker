@@ -5,6 +5,7 @@ import { getCareerSummary } from "@/actions/games";
 import { getViewer } from "@/lib/auth/session";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { CareerChart } from "@/components/CareerChart";
+import { formatDateDdMmYyyy } from "@/lib/formatDate";
 
 export default async function CareerPage({
   params,
@@ -27,11 +28,7 @@ export default async function CareerPage({
     }).format(n);
 
   const df = (d: Date | null) =>
-    d
-      ? new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
-          dateStyle: "medium",
-        }).format(d)
-      : "—";
+    d ? formatDateDdMmYyyy(d) : "—";
 
   const chartData = rows.reduce<
     { label: string; netNis: number; cumulative: number }[]

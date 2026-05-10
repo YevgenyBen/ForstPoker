@@ -10,6 +10,7 @@ import { db } from "@/db";
 import {
   appUsers,
   gameMembers,
+  gameRsvps,
   games,
   ledgerEntries,
   settlements,
@@ -22,41 +23,17 @@ import {
   netSum,
 } from "@/lib/settlement";
 import { safeConsoleError } from "@/lib/logSafeError";
+import { formatDateDdMmYyyy, parseScheduledCalendarDate } from "@/lib/formatDate";
 
 const amountSchema = z.coerce.number().int().positive();
 
 const notesSchema = z.string().max(500).optional();
 const gameLocationSchema = z.string().max(500).optional();
 
-/** Calendar date from `<input type="date">` → stable instant (noon UTC on that civil day). */
-function parseScheduledDateOnly(isoDate: string): Date | null {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate.trim());
-  if (!m) return null;
-  const y = Number(m[1]);
-  const mo = Number(m[2]);
-  const d = Number(m[3]);
-  const dt = new Date(Date.UTC(y, mo - 1, d, 12, 0, 0));
-  if (Number.isNaN(dt.getTime())) return null;
-  if (
-    dt.getUTCFullYear() !== y ||
-    dt.getUTCMonth() !== mo - 1 ||
-    dt.getUTCDate() !== d
-  ) {
-    return null;
-  }
-  return dt;
-}
-
 /** Next game serial = existing row count + 1; title `Game {n} - dd/mm/yyyy` (Israel date). */
 function nextGameTitle(existingCount: number, at = new Date()) {
   const serial = existingCount + 1;
-  const ddmmyyyy = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Jerusalem",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(at);
-  return `Game ${serial} - ${ddmmyyyy}`;
+  return `Game ${serial} - ${formatDateDdMmYyyy(at)}`;
 }
 
 async function requireUser() {
@@ -73,7 +50,7 @@ export async function createGame(formData: FormData) {
   const dateRaw = formData.get("scheduled_date")?.toString() ?? "";
   const notesRaw = formData.get("notes")?.toString() ?? "";
   const locationRaw = formData.get("location")?.toString() ?? "";
-  const scheduledStart = parseScheduledDateOnly(dateRaw);
+  const scheduledStart = parseScheduledCalendarDate(dateRaw);
   if (!scheduledStart) {
     redirect(`/${locale}/games`);
   }
@@ -134,6 +111,39 @@ export async function openGame(gameId: string) {
     .update(games)
     .set({ status: "open" })
     .where(eq(games.id, gameId));
+
+  revalidatePath(`/${locale}/games`);
+  revalidatePath(`/${locale}/games/${gameId}`);
+  revalidatePath(`/${locale}/league`);
+  return { ok: true as const };
+}
+
+const rsvpStatusSchema = z.enum(["yes", "maybe", "no"]);
+
+export async function setGameRsvp(gameId: string, status: string) {
+  const { user, locale } = await requireUser();
+  const parsed = rsvpStatusSchema.safeParse(status);
+  if (!parsed.success) return { error: "invalid" as const };
+
+  const [g] = await db.select().from(games).where(eq(games.id, gameId)).limit(1);
+  if (!g || g.status !== "scheduled") return { error: "bad_state" as const };
+
+  await db
+    .insert(gameRsvps)
+    .values({
+      gameId,
+      userId: user.id,
+      status: parsed.data,
+    })
+    .onConflictDoUpdate({
+      target: [gameRsvps.gameId, gameRsvps.userId],
+      set: {
+        status: parsed.data,
+        updatedAt: new Date(),
+      },
+    });
+
+  await db.insert(gameMembers).values({ gameId, userId: user.id }).onConflictDoNothing();
 
   revalidatePath(`/${locale}/games`);
   revalidatePath(`/${locale}/games/${gameId}`);
@@ -286,6 +296,28 @@ export async function deleteGame(gameId: string) {
   return { ok: true as const };
 }
 
+/** Remove a scheduled game entirely (host or game admin). */
+export async function cancelScheduledGame(gameId: string) {
+  const { user, locale } = await requireUser();
+
+  const [g] = await db.select().from(games).where(eq(games.id, gameId)).limit(1);
+  if (!g) return { error: "not_found" as const };
+  if (g.status !== "scheduled") return { error: "bad_state" as const };
+
+  const isHost = g.createdBy === user.id;
+  if (!isHost && !canDeleteGames(user.email)) {
+    return { error: "forbidden" as const };
+  }
+
+  await db.delete(games).where(eq(games.id, gameId));
+
+  revalidatePath(`/${locale}/games`);
+  revalidatePath(`/${locale}/games/${gameId}`);
+  revalidatePath(`/${locale}/career`);
+  revalidatePath(`/${locale}/league`);
+  return { ok: true as const };
+}
+
 export type ListedGameRow = {
   id: string;
   title: string;
@@ -295,6 +327,7 @@ export type ListedGameRow = {
   scheduledStartAt: Date | null;
   notes: string | null;
   gameLocation: string | null;
+  createdBy: string;
   initiatorUsername: string;
   initiatorLocation: string | null;
 };
@@ -313,6 +346,7 @@ export async function listGamesBySection() {
       scheduledStartAt: games.scheduledStartAt,
       notes: games.notes,
       gameLocation: games.location,
+      createdBy: games.createdBy,
       initiatorUsername: initiator.username,
       initiatorLocation: initiator.location,
     })
@@ -359,19 +393,69 @@ export async function getGameDetail(gameId: string) {
     .innerJoin(appUsers, eq(gameMembers.userId, appUsers.id))
     .where(eq(gameMembers.gameId, gameId));
 
-  const ledger = await db
-    .select({
-      id: ledgerEntries.id,
-      userId: ledgerEntries.userId,
-      username: appUsers.username,
-      kind: ledgerEntries.kind,
-      amountNis: ledgerEntries.amountNis,
-      recordedAt: ledgerEntries.recordedAt,
-    })
-    .from(ledgerEntries)
-    .innerJoin(appUsers, eq(ledgerEntries.userId, appUsers.id))
-    .where(eq(ledgerEntries.gameId, gameId))
-    .orderBy(ledgerEntries.recordedAt);
+  type LedgerRow = {
+    id: string;
+    userId: string;
+    username: string;
+    kind: "buy_in" | "buy_out";
+    amountNis: number;
+    recordedAt: Date;
+  };
+
+  let ledger: LedgerRow[] = [];
+  if (game.status !== "scheduled") {
+    ledger = await db
+      .select({
+        id: ledgerEntries.id,
+        userId: ledgerEntries.userId,
+        username: appUsers.username,
+        kind: ledgerEntries.kind,
+        amountNis: ledgerEntries.amountNis,
+        recordedAt: ledgerEntries.recordedAt,
+      })
+      .from(ledgerEntries)
+      .innerJoin(appUsers, eq(ledgerEntries.userId, appUsers.id))
+      .where(eq(ledgerEntries.gameId, gameId))
+      .orderBy(ledgerEntries.recordedAt);
+  }
+
+  type RsvpPerson = { userId: string; username: string };
+
+  let rsvp: { yes: RsvpPerson[]; maybe: RsvpPerson[]; no: RsvpPerson[] } | null =
+    null;
+  let myRsvp: "yes" | "maybe" | "no" | null = null;
+
+  if (game.status === "scheduled") {
+    const rsvpRows = await db
+      .select({
+        userId: gameRsvps.userId,
+        username: appUsers.username,
+        status: gameRsvps.status,
+      })
+      .from(gameRsvps)
+      .innerJoin(appUsers, eq(gameRsvps.userId, appUsers.id))
+      .where(eq(gameRsvps.gameId, gameId));
+
+    const yes: RsvpPerson[] = [];
+    const maybe: RsvpPerson[] = [];
+    const no: RsvpPerson[] = [];
+    const sortNames = (a: RsvpPerson, b: RsvpPerson) =>
+      a.username.localeCompare(b.username, undefined, { sensitivity: "base" });
+
+    for (const r of rsvpRows) {
+      const row: RsvpPerson = { userId: r.userId, username: r.username };
+      if (r.status === "yes") yes.push(row);
+      else if (r.status === "maybe") maybe.push(row);
+      else no.push(row);
+    }
+    yes.sort(sortNames);
+    maybe.sort(sortNames);
+    no.sort(sortNames);
+    rsvp = { yes, maybe, no };
+
+    const mine = rsvpRows.find((r) => r.userId === user.id);
+    myRsvp = mine ? mine.status : null;
+  }
 
   const isMember = members.some((m) => m.userId === user.id);
 
@@ -450,6 +534,8 @@ export async function getGameDetail(gameId: string) {
     isMember,
     initiatorUsername: initiator?.username ?? "?",
     initiatorLocation: initiator?.location ?? null,
+    rsvp,
+    myRsvp,
   };
 }
 

@@ -2,25 +2,31 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { listGamesBySection, type ListedGameRow } from "@/actions/games";
+import {
+  listGamesBySection,
+  type ListedGameRow,
+} from "@/actions/games";
 import { getViewer } from "@/lib/auth/session";
 import { canDeleteGames } from "@/lib/auth/gameAdmin";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { CancelScheduledGameButton } from "@/components/CancelScheduledGameButton";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { CreateGameForm } from "@/components/CreateGameForm";
+import {
+  formatDateDdMmYyyy,
+  formatDateTimeDdMmYyyyHm,
+} from "@/lib/formatDate";
 
 function GameRow({
   g,
   locale,
-  tf,
-  formatGameDay,
+  showCancelScheduled,
   showGameDelete,
   t,
 }: {
   g: ListedGameRow;
   locale: string;
-  tf: (d: Date) => string;
-  formatGameDay: (d: Date) => string;
+  showCancelScheduled: boolean;
   showGameDelete: boolean;
   t: (key: string) => string;
 }) {
@@ -59,7 +65,9 @@ function GameRow({
             {g.status !== "scheduled" && (
               <span className="flex shrink-0 items-center gap-2 text-sm">
                 <span className={statusClass}>{statusText}</span>
-                <span className="text-[var(--fp-secondary)]">{tf(g.createdAt)}</span>
+                <span className="text-[var(--fp-secondary)]">
+                  {formatDateTimeDdMmYyyyHm(g.createdAt)}
+                </span>
               </span>
             )}
             {g.status === "scheduled" && (
@@ -73,7 +81,9 @@ function GameRow({
                 {g.initiatorUsername}
               </p>
               {g.scheduledStartAt && (
-                <p className="text-[var(--fp-ink)]">{formatGameDay(g.scheduledStartAt)}</p>
+                <p className="text-[var(--fp-ink)]">
+                  {formatDateDdMmYyyy(g.scheduledStartAt)}
+                </p>
               )}
               {g.notes?.trim() ? (
                 <p className="line-clamp-4 text-[var(--fp-ink)]" dir="auto">
@@ -87,9 +97,13 @@ function GameRow({
             </div>
           )}
         </Link>
-        {showGameDelete && (
+        {(showCancelScheduled || showGameDelete) && (
           <div className="flex shrink-0 items-center border-s border-[var(--fp-wood-mid)]/20 px-2 py-2">
-            <DeleteGameButton gameId={g.id} compact />
+            {showCancelScheduled ? (
+              <CancelScheduledGameButton gameId={g.id} compact />
+            ) : (
+              <DeleteGameButton gameId={g.id} compact />
+            )}
           </div>
         )}
       </div>
@@ -135,18 +149,12 @@ export default async function GamesPage({
 
   const { upcoming, current, past } = await listGamesBySection();
   const t = await getTranslations("games");
-  const showGameDelete = canDeleteGames(user.email);
-  const tf = (d: Date) =>
-    new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(d);
-
-  const formatGameDay = (d: Date) =>
-    new Intl.DateTimeFormat(locale === "he" ? "he-IL" : "en-GB", {
-      dateStyle: "medium",
-      timeZone: "Asia/Jerusalem",
-    }).format(d);
+  const isGameAdmin = canDeleteGames(user.email);
+  const canCancelScheduledRow = (g: ListedGameRow) =>
+    g.status === "scheduled" &&
+    (g.createdBy === user.id || isGameAdmin);
+  const showGameDeleteRow = (g: ListedGameRow) =>
+    isGameAdmin && g.status !== "scheduled";
 
   const totalCount = upcoming.length + current.length + past.length;
 
@@ -182,9 +190,8 @@ export default async function GamesPage({
                       key={g.id}
                       g={g}
                       locale={locale}
-                      tf={tf}
-                      formatGameDay={formatGameDay}
-                      showGameDelete={showGameDelete}
+                      showCancelScheduled={canCancelScheduledRow(g)}
+                      showGameDelete={showGameDeleteRow(g)}
                       t={t}
                     />
                   ))}
@@ -200,9 +207,8 @@ export default async function GamesPage({
                       key={g.id}
                       g={g}
                       locale={locale}
-                      tf={tf}
-                      formatGameDay={formatGameDay}
-                      showGameDelete={showGameDelete}
+                      showCancelScheduled={canCancelScheduledRow(g)}
+                      showGameDelete={showGameDeleteRow(g)}
                       t={t}
                     />
                   ))}
@@ -218,9 +224,8 @@ export default async function GamesPage({
                       key={g.id}
                       g={g}
                       locale={locale}
-                      tf={tf}
-                      formatGameDay={formatGameDay}
-                      showGameDelete={showGameDelete}
+                      showCancelScheduled={canCancelScheduledRow(g)}
+                      showGameDelete={showGameDeleteRow(g)}
                       t={t}
                     />
                   ))}
