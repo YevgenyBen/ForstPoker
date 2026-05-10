@@ -1,0 +1,7 @@
+-- Schema changes applied incrementally via `npx drizzle-kit push` from src/db/schema.ts.
+-- Fresh Neon DBs: run `npx drizzle-kit push` (or migrate) so enums/columns match schema.ts.
+-- Manual equivalent if needed:
+--   ALTER TYPE game_status ADD VALUE 'scheduled';
+--   ALTER TABLE app_users ADD COLUMN location text;
+--   ALTER TABLE games ADD COLUMN scheduled_start_at timestamptz;
+--   ALTER TABLE games ADD COLUMN notes text;

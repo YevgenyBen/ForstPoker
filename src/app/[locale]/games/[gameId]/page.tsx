@@ -9,6 +9,7 @@ import { JoinGameButton } from "@/components/JoinGameButton";
 import { GameLedgerForm } from "@/components/GameLedgerForm";
 import { CloseGameButton } from "@/components/CloseGameButton";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
+import { OpenGameButton } from "@/components/OpenGameButton";
 
 export default async function GameDetailPage({
   params,
@@ -23,8 +24,17 @@ export default async function GameDetailPage({
   const detail = await getGameDetail(gameId);
   if (!detail) notFound();
 
-  const { game, members, ledger, bankNis, settlements, closerName, isMember } =
-    detail;
+  const {
+    game,
+    members,
+    ledger,
+    bankNis,
+    settlements,
+    closerName,
+    isMember,
+    initiatorUsername,
+    initiatorLocation,
+  } = detail;
   const canDeleteGame =
     v.kind === "member" && canDeleteGames(v.user.email);
   const t = await getTranslations("games");
@@ -56,15 +66,42 @@ export default async function GameDetailPage({
             {game.title}
           </h1>
           <p className="text-sm text-[var(--fp-secondary)]">
-            {game.status === "open" ? t("statusOpen") : t("statusClosed")} ·{" "}
-            {tf(game.createdAt)}
+            {game.status === "scheduled"
+              ? t("statusScheduled")
+              : game.status === "open"
+                ? t("statusOpen")
+                : t("statusClosed")}
+            {game.status === "scheduled" && game.scheduledStartAt
+              ? ` · ${tf(game.scheduledStartAt)}`
+              : game.status !== "scheduled"
+                ? ` · ${tf(game.createdAt)}`
+                : ""}
           </p>
         </div>
         <LocaleSwitcher />
       </header>
 
+      {game.status === "scheduled" && (
+        <section className="space-y-2 rounded-xl border border-[var(--fp-brass)]/35 bg-[var(--fp-brass)]/8 p-4 text-sm">
+          <p dir="auto">
+            <span className="font-semibold text-[var(--fp-ink)]">{t("hostLabel")}: </span>
+            {initiatorUsername}
+          </p>
+          {game.notes?.trim() ? (
+            <p className="text-[var(--fp-ink)]" dir="auto">
+              {game.notes}
+            </p>
+          ) : null}
+          <p dir="auto">
+            <span className="font-semibold text-[var(--fp-ink)]">{t("locationShort")}: </span>
+            {initiatorLocation?.trim() ? initiatorLocation : "—"}
+          </p>
+        </section>
+      )}
+
       <section className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--fp-wood-mid)]/25 bg-[var(--fp-panel)] p-4">
         <JoinGameButton gameId={gameId} isMember={isMember} />
+        {game.status === "scheduled" && isMember && <OpenGameButton gameId={gameId} />}
         {!isMember && (
           <p className="text-sm text-[var(--fp-secondary)]">{t("nonMemberHint")}</p>
         )}
@@ -82,27 +119,33 @@ export default async function GameDetailPage({
         </ul>
       </section>
 
-      <section
-        className="rounded-xl border border-[var(--fp-brass)]/35 bg-[var(--fp-parchment)]/45 px-4 py-3 shadow-sm"
-        aria-label={t("bankAria")}
-      >
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-semibold text-[var(--fp-ink)]">{t("bank")}</span>
-          <span
-            className={`text-lg font-bold tabular-nums ${
-              bankNis >= 0 ? "text-[var(--fp-moss)]" : "text-[var(--fp-loss)]"
-            }`}
-            dir="ltr"
-          >
-            {money(bankNis)}
-          </span>
-        </div>
-      </section>
+      {game.status !== "scheduled" && (
+        <section
+          className="rounded-xl border border-[var(--fp-brass)]/35 bg-[var(--fp-parchment)]/45 px-4 py-3 shadow-sm"
+          aria-label={t("bankAria")}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-semibold text-[var(--fp-ink)]">{t("bank")}</span>
+            <span
+              className={`text-lg font-bold tabular-nums ${
+                bankNis >= 0 ? "text-[var(--fp-moss)]" : "text-[var(--fp-loss)]"
+              }`}
+              dir="ltr"
+            >
+              {money(bankNis)}
+            </span>
+          </div>
+        </section>
+      )}
 
       <section>
         <h2 className="mb-2 font-semibold text-[var(--fp-ink)]">{t("ledger")}</h2>
         <div className="overflow-x-auto rounded-xl border border-[var(--fp-wood-mid)]/25">
-          {ledger.length === 0 ? (
+          {game.status === "scheduled" ? (
+            <p className="px-4 py-10 text-center text-sm text-[var(--fp-secondary)]">
+              {t("ledgerWhenOpen")}
+            </p>
+          ) : ledger.length === 0 ? (
             <p className="px-4 py-10 text-center text-sm italic text-[var(--fp-secondary)]">
               {t("ledgerEmpty")}
             </p>

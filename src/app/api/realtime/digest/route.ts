@@ -28,7 +28,8 @@ export async function GET() {
       (SELECT COUNT(*)::text FROM settlements) || ':' ||
       COALESCE((SELECT MAX(recorded_at)::text FROM ledger_entries), '') || ':' ||
       COALESCE((SELECT MAX(closed_at)::text FROM games), '') || ':' ||
-      COALESCE((SELECT MAX(joined_at)::text FROM game_members), '')
+      COALESCE((SELECT MAX(joined_at)::text FROM game_members), '') || ':' ||
+      COALESCE((SELECT MAX(scheduled_start_at)::text FROM games), '')
     ) AS v`
   );
 

@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { and, count, desc, eq, inArray } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
@@ -24,6 +25,8 @@ import { safeConsoleError } from "@/lib/logSafeError";
 
 const amountSchema = z.coerce.number().int().positive();
 
+const notesSchema = z.string().max(2000).optional();
+
 /** Next game serial = existing row count + 1; title `Game {n} - dd/mm/yyyy` (Israel date). */
 function nextGameTitle(existingCount: number, at = new Date()) {
   const serial = existingCount + 1;
@@ -44,18 +47,34 @@ async function requireUser() {
   return { user: v.user, locale };
 }
 
-export async function createGame(_formData: FormData) {
+export async function createGame(formData: FormData) {
   const { user, locale } = await requireUser();
 
+  const isoRaw = formData.get("scheduled_start_utc")?.toString() ?? "";
+  const notesRaw = formData.get("notes")?.toString() ?? "";
+  const startParse = z.string().min(1).safeParse(isoRaw);
+  if (!startParse.success) {
+    redirect(`/${locale}/games`);
+  }
+  const scheduledStart = new Date(startParse.data);
+  if (Number.isNaN(scheduledStart.getTime())) {
+    redirect(`/${locale}/games`);
+  }
+
+  const notesResult = notesSchema.safeParse(notesRaw.trim() || undefined);
+  const notes = notesResult.success ? (notesResult.data ?? null) : null;
+
   const [row] = await db.select({ n: count() }).from(games);
-  const title = nextGameTitle(Number(row?.n ?? 0));
+  const title = nextGameTitle(Number(row?.n ?? 0), scheduledStart);
 
   const [game] = await db
     .insert(games)
     .values({
       title,
       createdBy: user.id,
-      status: "open",
+      status: "scheduled",
+      scheduledStartAt: scheduledStart,
+      notes,
     })
     .returning({ id: games.id });
 
@@ -65,14 +84,62 @@ export async function createGame(_formData: FormData) {
   });
 
   revalidatePath(`/${locale}/games`);
+  revalidatePath(`/${locale}/league`);
   redirect(`/${locale}/games/${game!.id}`);
+}
+
+export async function openGame(gameId: string) {
+  const { user, locale } = await requireUser();
+
+  const [g] = await db.select().from(games).where(eq(games.id, gameId)).limit(1);
+  if (!g || g.status !== "scheduled") {
+    return { error: "bad_state" as const };
+  }
+
+  const [member] = await db
+    .select()
+    .from(gameMembers)
+    .where(
+      and(eq(gameMembers.gameId, gameId), eq(gameMembers.userId, user.id))
+    )
+    .limit(1);
+  if (!member) return { error: "not_member" as const };
+
+  await db
+    .update(games)
+    .set({ status: "open" })
+    .where(eq(games.id, gameId));
+
+  revalidatePath(`/${locale}/games`);
+  revalidatePath(`/${locale}/games/${gameId}`);
+  revalidatePath(`/${locale}/league`);
+  return { ok: true as const };
+}
+
+const locationSchema = z.string().max(500);
+
+export async function updateMyLocation(formData: FormData) {
+  const { user, locale } = await requireUser();
+  const raw = formData.get("location")?.toString() ?? "";
+  const parsed = locationSchema.safeParse(raw);
+  if (!parsed.success) return;
+
+  const value = parsed.data.trim() || null;
+  await db
+    .update(appUsers)
+    .set({ location: value })
+    .where(eq(appUsers.id, user.id));
+
+  revalidatePath(`/${locale}/games`);
 }
 
 export async function joinGame(gameId: string) {
   const { user, locale } = await requireUser();
 
   const [g] = await db.select().from(games).where(eq(games.id, gameId)).limit(1);
-  if (!g || g.status !== "open") return { error: "closed" as const };
+  if (!g || (g.status !== "open" && g.status !== "scheduled")) {
+    return { error: "closed" as const };
+  }
 
   await db.insert(gameMembers).values({ gameId, userId: user.id }).onConflictDoNothing();
 
@@ -211,17 +278,59 @@ export async function deleteGame(gameId: string) {
   return { ok: true as const };
 }
 
-export async function listGames() {
+export type ListedGameRow = {
+  id: string;
+  title: string;
+  status: "scheduled" | "open" | "closed";
+  createdAt: Date;
+  closedAt: Date | null;
+  scheduledStartAt: Date | null;
+  notes: string | null;
+  initiatorUsername: string;
+  initiatorLocation: string | null;
+};
+
+export async function listGamesBySection() {
   await requireUser();
-  return db
+  const initiator = alias(appUsers, "initiator");
+
+  const rows = await db
     .select({
       id: games.id,
       title: games.title,
       status: games.status,
       createdAt: games.createdAt,
+      closedAt: games.closedAt,
+      scheduledStartAt: games.scheduledStartAt,
+      notes: games.notes,
+      initiatorUsername: initiator.username,
+      initiatorLocation: initiator.location,
     })
     .from(games)
+    .innerJoin(initiator, eq(games.createdBy, initiator.id))
     .orderBy(desc(games.createdAt));
+
+  const upcoming = rows
+    .filter((r) => r.status === "scheduled")
+    .sort(
+      (a, b) =>
+        (a.scheduledStartAt?.getTime() ?? 0) -
+        (b.scheduledStartAt?.getTime() ?? 0)
+    ) as ListedGameRow[];
+
+  const current = rows
+    .filter((r) => r.status === "open")
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) as ListedGameRow[];
+
+  const past = rows
+    .filter((r) => r.status === "closed")
+    .sort(
+      (a, b) =>
+        (b.closedAt?.getTime() ?? b.createdAt.getTime()) -
+        (a.closedAt?.getTime() ?? a.createdAt.getTime())
+    ) as ListedGameRow[];
+
+  return { upcoming, current, past };
 }
 
 export async function getGameDetail(gameId: string) {
@@ -312,6 +421,15 @@ export async function getGameDetail(gameId: string) {
     closerName = cr?.username ?? null;
   }
 
+  const [initiator] = await db
+    .select({
+      username: appUsers.username,
+      location: appUsers.location,
+    })
+    .from(appUsers)
+    .where(eq(appUsers.id, game.createdBy))
+    .limit(1);
+
   return {
     game,
     members,
@@ -320,6 +438,8 @@ export async function getGameDetail(gameId: string) {
     settlements: settlementRows,
     closerName,
     isMember,
+    initiatorUsername: initiator?.username ?? "?",
+    initiatorLocation: initiator?.location ?? null,
   };
 }
 

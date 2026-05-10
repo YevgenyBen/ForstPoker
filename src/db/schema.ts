@@ -10,7 +10,11 @@ import {
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
-export const gameStatusEnum = pgEnum("game_status", ["open", "closed"]);
+export const gameStatusEnum = pgEnum("game_status", [
+  "scheduled",
+  "open",
+  "closed",
+]);
 export const ledgerKindEnum = pgEnum("ledger_kind", ["buy_in", "buy_out"]);
 
 export const appUsers = pgTable(
@@ -22,6 +26,8 @@ export const appUsers = pgTable(
     email: text("email").notNull(),
     displayName: text("display_name"),
     preferredLocale: text("preferred_locale"),
+    /** Default meeting spot; UTF-8 text (Hebrew, English, etc.) */
+    location: text("location"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -43,6 +49,9 @@ export const games = pgTable("games", {
     .defaultNow()
     .notNull(),
   closedAt: timestamp("closed_at", { withTimezone: true }),
+  /** When play is planned to start (required for scheduled games). */
+  scheduledStartAt: timestamp("scheduled_start_at", { withTimezone: true }),
+  notes: text("notes"),
 });
 
 export const gameMembers = pgTable(
