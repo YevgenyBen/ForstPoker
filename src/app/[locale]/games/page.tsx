@@ -185,7 +185,6 @@ export default async function GamesPage({
       </section>
 
       <section className="space-y-8">
-        <h2 className="font-semibold text-[var(--fp-ink)]">{t("title")}</h2>
         {totalCount === 0 ? (
           <p className="rounded-xl bg-[var(--fp-parchment)]/60 px-4 py-8 text-center text-[var(--fp-secondary)]">
             {t("empty")}
