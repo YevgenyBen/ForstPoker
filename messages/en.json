@@ -15,7 +15,6 @@
     "signIn": "Sign in",
     "signUp": "Create account",
     "google": "Continue with Google",
-    "googleHint": "On localhost, Google opens in a small popup (allow popups). Use http://localhost:3000 — same host as when you started (not 127.0.0.1 mixed with localhost).",
     "embeddedPreviewTitle": "IDE preview",
     "embeddedPreviewBody": "Google sign-in does not work inside Cursor’s embedded browser. Use Chrome or Edge with the same URL (e.g. http://localhost:3000).",
     "openExternalBrowser": "Open in system browser",

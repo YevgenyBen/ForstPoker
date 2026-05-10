@@ -331,9 +331,6 @@ export function LoginForm() {
       >
         {t("google")}
       </button>
-      {!embeddedPreview && (
-        <p className="text-center text-xs leading-snug text-[var(--fp-secondary)]">{t("googleHint")}</p>
-      )}
 
       <div className="relative text-center text-xs text-[var(--fp-secondary)]">
         <span className="bg-[var(--fp-panel)] px-2">or email</span>

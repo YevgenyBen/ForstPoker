@@ -15,7 +15,6 @@
     "signIn": "התחברות",
     "signUp": "הרשמה",
     "google": "המשך עם Google",
-    "googleHint": "ב-localhost Google נפתח בחלון קופץ (אשר חלונות קופצים). השתמש ב-http://localhost:3000 — אותו מארח כמו בהתחלה (לא לערבב localhost עם 127.0.0.1).",
     "embeddedPreviewTitle": "תצוגה מוטמעת ב-IDE",
     "embeddedPreviewBody": "התחברות Google לא עובדת בתוך הדפדפן המוטמע של Cursor. השתמש ב-Chrome או Edge עם אותה כתובת (למשל http://localhost:3000).",
     "openExternalBrowser": "פתיחה בדפדפן של המערכת",
