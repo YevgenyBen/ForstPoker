@@ -8,6 +8,7 @@ import {
   signInWithRedirect,
   signInWithPopup,
   getRedirectResult,
+  onAuthStateChanged,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
 } from "firebase/auth";
@@ -179,12 +180,16 @@ export function LoginForm() {
     }
   }, [establishSession, t]);
 
-  /** Complete redirect OAuth state, then sync cookie if Firebase user exists without server session. */
+  /**
+   * Complete redirect OAuth, then sync server session. After `signInWithRedirect`, Firebase may apply
+   * the credential shortly after `getRedirectResult` resolves — subscribe so we retry when `currentUser` appears.
+   */
   useEffect(() => {
     const auth = getFirebaseAuth();
     let cancelled = false;
+    let unsubAuth: (() => void) | undefined;
 
-    const run = async () => {
+    (async () => {
       try {
         await getRedirectResult(auth);
       } catch (e) {
@@ -192,12 +197,15 @@ export function LoginForm() {
       }
       if (cancelled) return;
       await syncServerSessionIfNeeded();
-    };
-
-    void run();
+      if (cancelled) return;
+      unsubAuth = onAuthStateChanged(auth, () => {
+        if (!cancelled) void syncServerSessionIfNeeded();
+      });
+    })();
 
     return () => {
       cancelled = true;
+      unsubAuth?.();
     };
   }, [syncServerSessionIfNeeded]);
 
