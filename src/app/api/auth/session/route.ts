@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { safeConsoleError } from "@/lib/logSafeError";
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { SESSION_COOKIE, SESSION_MAX_AGE_MS } from "@/lib/auth/session";
@@ -33,15 +34,15 @@ export async function POST(req: NextRequest) {
     const sessionCookie = await auth.createSessionCookie(idToken, {
       expiresIn,
     });
-    const res = NextResponse.json({ ok: true }, { headers: NO_STORE });
-    res.cookies.set(SESSION_COOKIE, sessionCookie, {
+    const cookieStore = await cookies();
+    cookieStore.set(SESSION_COOKIE, sessionCookie, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: expiresIn / 1000,
       path: "/",
     });
-    return res;
+    return NextResponse.json({ ok: true }, { headers: NO_STORE });
   } catch (e) {
     safeConsoleError("api/auth/session POST", e);
     const message = e instanceof Error ? e.message : "session_failed";
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE() {
-  const res = NextResponse.json({ ok: true }, { headers: NO_STORE });
-  res.cookies.set(SESSION_COOKIE, "", { maxAge: 0, path: "/" });
-  return res;
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, "", { maxAge: 0, path: "/" });
+  return NextResponse.json({ ok: true }, { headers: NO_STORE });
 }
