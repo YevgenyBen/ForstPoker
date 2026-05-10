@@ -5,7 +5,7 @@
   },
   "nav": {
     "games": "Games",
-    "history": "History",
+    "career": "Career",
     "login": "Log in",
     "logout": "Log out"
   },
@@ -49,7 +49,6 @@
   "games": {
     "title": "Games",
     "create": "New game",
-    "gameTitle": "Title",
     "submitCreate": "Start game",
     "empty": "No games yet — shuffle up.",
     "statusOpen": "Open",
@@ -61,7 +60,6 @@
     "buyIn": "Buy in",
     "buyOut": "Buy out (profit)",
     "amountNis": "Amount (₪)",
-    "note": "Note (optional)",
     "addEntry": "Add entry",
     "closeGame": "Close game",
     "closeConfirm": "Close this game and compute settlements? Totals must balance to ₪0.",
@@ -80,8 +78,8 @@
     "deleteGameNotFound": "Game no longer exists.",
     "deleteGameFailed": "Could not delete the game. Try again."
   },
-  "history": {
-    "title": "History",
+  "career": {
+    "title": "Career",
     "subtitle": "Games you played",
     "lifetime": "Lifetime",
     "empty": "No completed games with you yet.",

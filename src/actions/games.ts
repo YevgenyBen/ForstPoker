@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { revalidatePath } from "next/cache";
@@ -22,8 +22,19 @@ import {
 } from "@/lib/settlement";
 import { safeConsoleError } from "@/lib/logSafeError";
 
-const titleSchema = z.string().trim().min(1).max(120);
 const amountSchema = z.coerce.number().int().positive();
+
+/** Next game serial = existing row count + 1; title `Game{n}-dd/mm/yyyy` (Israel date). */
+function nextGameTitle(existingCount: number, at = new Date()) {
+  const serial = existingCount + 1;
+  const ddmmyyyy = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jerusalem",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(at);
+  return `Game${serial}-${ddmmyyyy}`;
+}
 
 async function requireUser() {
   const locale = await getLocale();
@@ -33,15 +44,16 @@ async function requireUser() {
   return { user: v.user, locale };
 }
 
-export async function createGame(formData: FormData) {
+export async function createGame(_formData: FormData) {
   const { user, locale } = await requireUser();
-  const title = titleSchema.safeParse(formData.get("title"));
-  if (!title.success) return;
+
+  const [row] = await db.select({ n: count() }).from(games);
+  const title = nextGameTitle(Number(row?.n ?? 0));
 
   const [game] = await db
     .insert(games)
     .values({
-      title: title.data,
+      title,
       createdBy: user.id,
       status: "open",
     })
@@ -73,7 +85,6 @@ export async function addLedgerEntry(input: {
   gameId: string;
   kind: "buy_in" | "buy_out";
   amountNis: number;
-  note?: string | null;
 }) {
   const { user, locale } = await requireUser();
   const amount = amountSchema.safeParse(input.amountNis);
@@ -96,12 +107,12 @@ export async function addLedgerEntry(input: {
     userId: user.id,
     kind: input.kind,
     amountNis: amount.data,
-    note: input.note?.trim() || null,
+    note: null,
   });
 
   revalidatePath(`/${locale}/games`);
   revalidatePath(`/${locale}/games/${input.gameId}`);
-  revalidatePath(`/${locale}/history`);
+  revalidatePath(`/${locale}/career`);
   return { ok: true as const };
 }
 
@@ -175,7 +186,7 @@ export async function closeGame(gameId: string) {
 
   revalidatePath(`/${locale}/games`);
   revalidatePath(`/${locale}/games/${gameId}`);
-  revalidatePath(`/${locale}/history`);
+  revalidatePath(`/${locale}/career`);
   return { ok: true as const };
 }
 
@@ -193,7 +204,7 @@ export async function deleteGame(gameId: string) {
 
   revalidatePath(`/${locale}/games`);
   revalidatePath(`/${locale}/games/${gameId}`);
-  revalidatePath(`/${locale}/history`);
+  revalidatePath(`/${locale}/career`);
   return { ok: true as const };
 }
 
@@ -233,7 +244,6 @@ export async function getGameDetail(gameId: string) {
       username: appUsers.username,
       kind: ledgerEntries.kind,
       amountNis: ledgerEntries.amountNis,
-      note: ledgerEntries.note,
       recordedAt: ledgerEntries.recordedAt,
     })
     .from(ledgerEntries)
@@ -303,7 +313,7 @@ export async function getGameDetail(gameId: string) {
   };
 }
 
-export async function getHistorySummary() {
+export async function getCareerSummary() {
   const { user } = await requireUser();
 
   const joined = await db

@@ -13,8 +13,8 @@ import { useTranslations } from "next-intl";
 
 type Row = { label: string; netNis: number; cumulative: number };
 
-export function HistoryChart({ data }: { data: Row[] }) {
-  const t = useTranslations("history");
+export function CareerChart({ data }: { data: Row[] }) {
+  const t = useTranslations("career");
 
   if (data.length === 0) return null;
 
@@ -28,6 +28,20 @@ export function HistoryChart({ data }: { data: Row[] }) {
           <YAxis tick={{ fontSize: 11 }} />
           <Tooltip
             formatter={(v) => [typeof v === "number" ? `₪${v}` : v, ""]}
+            contentStyle={{
+              backgroundColor: "var(--fp-panel)",
+              border: "1px solid color-mix(in srgb, var(--fp-wood-mid) 35%, transparent)",
+              borderRadius: "8px",
+              boxShadow: "0 4px 14px rgba(0, 0, 0, 0.18)",
+            }}
+            labelStyle={{
+              color: "var(--fp-ink)",
+              fontWeight: 600,
+              marginBottom: 4,
+            }}
+            itemStyle={{
+              color: "var(--fp-moss)",
+            }}
           />
           <Line
             type="monotone"

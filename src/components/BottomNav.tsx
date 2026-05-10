@@ -59,7 +59,7 @@ export function BottomNav() {
 
   const items = [
     { href: `${base}/games`, label: t("games") },
-    { href: `${base}/history`, label: t("history") },
+    { href: `${base}/career`, label: t("career") },
   ];
 
   const appVersion = process.env.NEXT_PUBLIC_APP_VERSION;

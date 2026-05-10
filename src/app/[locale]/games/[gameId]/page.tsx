@@ -90,7 +90,6 @@ export default async function GameDetailPage({
                 <th className="px-2 py-2 text-start font-semibold">{t("members")}</th>
                 <th className="px-2 py-2 text-start font-semibold">type</th>
                 <th className="px-2 py-2 text-end font-semibold">{t("amountNis")}</th>
-                <th className="px-2 py-2 text-start font-semibold">{t("note")}</th>
                 <th className="px-2 py-2 text-start font-semibold">time</th>
               </tr>
             </thead>
@@ -104,9 +103,6 @@ export default async function GameDetailPage({
                   <td className="px-2 py-2 text-end tabular-nums" dir="ltr">
                     {money(row.amountNis)}
                   </td>
-                  <td className="max-w-[120px] truncate px-2 py-2" dir="auto">
-                    {row.note ?? "—"}
-                  </td>
                   <td className="whitespace-nowrap px-2 py-2 text-[var(--fp-secondary)]">
                     {tf(row.recordedAt)}
                   </td>
@@ -117,8 +113,8 @@ export default async function GameDetailPage({
         </div>
       </section>
 
-      {game.status === "open" && (
-        <GameLedgerForm gameId={gameId} disabled={!isMember} />
+      {game.status === "open" && isMember && (
+        <GameLedgerForm gameId={gameId} />
       )}
 
       {game.status === "open" && isMember && (

@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { getHistorySummary } from "@/actions/games";
+import { getCareerSummary } from "@/actions/games";
 import { getViewer } from "@/lib/auth/session";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
-import { HistoryChart } from "@/components/HistoryChart";
+import { CareerChart } from "@/components/CareerChart";
 
-export default async function HistoryPage({
+export default async function CareerPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -16,8 +16,8 @@ export default async function HistoryPage({
   if (v.kind === "guest") redirect(`/${locale}/login`);
   if (v.kind === "needs_onboarding") redirect(`/${locale}/onboarding`);
 
-  const t = await getTranslations("history");
-  const { lifetimeNis, rows } = await getHistorySummary();
+  const t = await getTranslations("career");
+  const { lifetimeNis, rows } = await getCareerSummary();
 
   const money = (n: number) =>
     new Intl.NumberFormat(locale === "he" ? "he-IL" : "en-IL", {
@@ -107,7 +107,7 @@ export default async function HistoryPage({
               </li>
             ))}
           </ul>
-          <HistoryChart data={chartData} />
+          <CareerChart data={chartData} />
         </>
       )}
     </main>

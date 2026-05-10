@@ -7,21 +7,18 @@ import { addLedgerEntry } from "@/actions/games";
 
 type Props = {
   gameId: string;
-  disabled?: boolean;
 };
 
-export function GameLedgerForm({ gameId, disabled }: Props) {
+export function GameLedgerForm({ gameId }: Props) {
   const t = useTranslations("games");
   const router = useRouter();
   const [kind, setKind] = useState<"buy_in" | "buy_out">("buy_in");
   const [amount, setAmount] = useState("");
-  const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (disabled) return;
     setLoading(true);
     setError(null);
     const n = parseInt(amount, 10);
@@ -34,7 +31,6 @@ export function GameLedgerForm({ gameId, disabled }: Props) {
       gameId,
       kind,
       amountNis: n,
-      note: note || null,
     });
     setLoading(false);
     if (res.error) {
@@ -42,7 +38,6 @@ export function GameLedgerForm({ gameId, disabled }: Props) {
       return;
     }
     setAmount("");
-    setNote("");
     router.refresh();
   }
 
@@ -81,20 +76,9 @@ export function GameLedgerForm({ gameId, disabled }: Props) {
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           required
-          disabled={disabled || loading}
+          disabled={loading}
           className="w-full rounded-lg border border-[var(--fp-wood-mid)]/40 bg-white px-3 py-2 text-neutral-900 placeholder:text-neutral-500"
           dir="ltr"
-        />
-      </div>
-      <div>
-        <label className="mb-1 block text-xs font-medium text-[var(--fp-ink)]">{t("note")}</label>
-        <input
-          type="text"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          disabled={disabled || loading}
-          className="w-full rounded-lg border border-[var(--fp-wood-mid)]/40 bg-white px-3 py-2 text-neutral-900 placeholder:text-neutral-500"
-          dir="auto"
         />
       </div>
       {error && (
@@ -104,7 +88,7 @@ export function GameLedgerForm({ gameId, disabled }: Props) {
       )}
       <button
         type="submit"
-        disabled={disabled || loading}
+        disabled={loading}
         className="w-full min-h-11 rounded-xl bg-[var(--fp-moss)] font-semibold text-white shadow-sm disabled:opacity-50"
       >
         {t("addEntry")}
