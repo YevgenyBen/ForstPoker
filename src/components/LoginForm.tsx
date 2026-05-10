@@ -152,10 +152,13 @@ export function LoginForm() {
   const syncServerSessionIfNeeded = useCallback(async () => {
     if (establishingRef.current) return;
     const auth = getFirebaseAuth();
-    establishingRef.current = true;
     try {
       await auth.authStateReady();
       if (!auth.currentUser) return;
+
+      if (establishingRef.current) return;
+      establishingRef.current = true;
+      setLoading(true);
 
       const me = (await fetch("/api/me", { credentials: "include" }).then((r) =>
         r.json()
@@ -166,7 +169,6 @@ export function LoginForm() {
         return;
       }
 
-      setLoading(true);
       setError(null);
       await establishSession();
       sessionStorage.removeItem(GOOGLE_OAUTH_FLAG);
@@ -239,7 +241,6 @@ export function LoginForm() {
       provider.setCustomParameters({ prompt: "select_account" });
 
       if (isLocalDevHost()) {
-        if (establishingRef.current) return;
         establishingRef.current = true;
         try {
           await signInWithPopup(auth, provider);
