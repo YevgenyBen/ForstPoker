@@ -1,0 +1,10 @@
+---
+description: Branching, merge-to-main, and sync workflow for this repo
+alwaysApply: true
+---
+
+# Git workflow
+
+- **New features**: Create a dedicated branch from up-to-date `main` (for example `feature/short-description`). Do feature work on that branch, not directly on `main`.
+- **When the user says “merge”** (or clearly asks to land the current feature on main): merge the current feature branch into `main`, switch to `main`, run `git pull` to sync with the remote, and push `main` if the merge was local-only or not yet on the remote.
+- Prefer fast-forward or explicit merge commits according to what the user prefers; default to a normal merge if unspecified.

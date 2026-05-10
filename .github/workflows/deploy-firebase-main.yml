@@ -1,0 +1,69 @@
+# Deploys to Firebase App Hosting on every push to `main` using the version already
+# in `package.json`, then bumps the minor version for the next merge (unless the
+# commit message contains "[skip ci]" — used for the automated version-bump commit
+# so we do not deploy twice or loop). The first deploy from 0.1.0 therefore ships
+# 0.1.0; the repo is bumped to 0.2.0 afterward.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   FIREBASE_TOKEN       — from `npx firebase-tools@latest login:ci`
+#   DATABASE_URL         — Neon URL (optional for build; placeholder used if unset)
+#   NEXT_PUBLIC_FIREBASE_* — same values as .env / Firebase console (recommended for production bundles)
+
+name: Deploy main to Firebase
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: firebase-deploy-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+
+      - name: Deploy to Firebase App Hosting
+        run: npx --yes firebase-tools@latest deploy --only apphosting --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Bump minor version for next deploy
+        run: node scripts/bump-minor-version.mjs
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          VERSION=$(node -p "require('./package.json').version")
+          git commit -m "chore: bump version to ${VERSION} [skip ci]"
+          git push

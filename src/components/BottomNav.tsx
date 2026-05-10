@@ -62,6 +62,8 @@ export function BottomNav() {
     { href: `${base}/history`, label: t("history") },
   ];
 
+  const appVersion = process.env.NEXT_PUBLIC_APP_VERSION;
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--fp-wood-mid)] bg-[var(--fp-panel)]/95 backdrop-blur-sm safe-area-pb">
       <div className="mx-auto flex max-w-lg gap-1 px-3 py-2">
@@ -97,6 +99,11 @@ export function BottomNav() {
           </Link>
         )}
       </div>
+      {appVersion ? (
+        <div className="border-t border-[var(--fp-wood-mid)]/40 px-3 py-1 text-center text-[10px] leading-tight text-[var(--fp-ink)]/45">
+          v{appVersion}
+        </div>
+      ) : null}
     </nav>
   );
 }
