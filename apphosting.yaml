@@ -11,7 +11,9 @@
 runConfig:
   cpu: 1
   memoryMiB: 1024
-  minInstances: 0
+  # Keeps one container warm so Cloud Run startup probes are less likely to time out
+  # during cold start (costs more than 0). Set back to 0 once stable.
+  minInstances: 1
   maxInstances: 100
   concurrency: 80
 
