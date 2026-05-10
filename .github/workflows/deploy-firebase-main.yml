@@ -10,9 +10,14 @@
 #   DATABASE_URL         — Neon URL (optional for build; placeholder used if unset)
 #   NEXT_PUBLIC_FIREBASE_* — same values as .env / Firebase console (recommended for production bundles)
 #
-# Deploy uses `apphosting:rollouts:create` (GitHub commit on the connected repo), not
-# `firebase deploy` from uploaded ZIP. Cloud Build then uses env/secrets from Firebase
-# Console → App Hosting → backend → Environment (GitHub Actions secrets do not apply there).
+# Deploy uses `firebase deploy` (uploads the Actions checkout). That avoids Developer
+# Connect / GitHub App links — `apphosting:rollouts:create --git-commit` requires the
+# backend’s GitHub link to match your repo (e.g. YevgenyBen/ForestPoker). If rollouts
+# fail with "repository not found under installation ID", fix or recreate the link in
+# Google Cloud → Developer Connect, or keep using deploy from CI as below.
+#
+# Cloud Build still reads env from Firebase Console → App Hosting → backend → Environment
+# (not GitHub Actions secrets), except whatever gets baked into the uploaded tree.
 #
 # Manual rerun: repo → Actions → "Deploy main to Firebase" → Run workflow (deploy only;
 # version bump is skipped so semver does not advance on reruns).
@@ -60,10 +65,9 @@ jobs:
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
 
-      - name: Start Firebase App Hosting rollout (build from GitHub)
-        # -P pins project so CI never targets the wrong Firebase project.
-        # Builds the connected repo at this commit in Cloud Build (see backend env in Firebase console).
-        run: npx --yes firebase-tools@latest -P forest-poker-web-a8k3 apphosting:rollouts:create forest-poker --git-commit "${{ github.sha }}" --force
+      - name: Deploy to Firebase App Hosting
+        # --force skips interactive “deploy local source?”; -P selects Firebase project.
+        run: npx --yes firebase-tools@latest -P forest-poker-web-a8k3 deploy --only apphosting --non-interactive --force
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
