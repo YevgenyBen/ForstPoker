@@ -11,5 +11,9 @@
       ".next",
       "secrets"
     ]
+  },
+  "hosting": {
+    "public": "hosting-minimal",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
   }
 }

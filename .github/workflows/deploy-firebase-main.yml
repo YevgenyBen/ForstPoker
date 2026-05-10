@@ -67,7 +67,7 @@ jobs:
 
       - name: Deploy to Firebase App Hosting
         # --force skips interactive “deploy local source?”; -P selects Firebase project.
-        run: npx --yes firebase-tools@latest -P forest-poker-web-a8k3 deploy --only apphosting --non-interactive --force
+        run: npx --yes firebase-tools@latest -P forest-poker-web-a8k3 deploy --only apphosting,hosting --non-interactive --force
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
