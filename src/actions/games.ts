@@ -113,6 +113,7 @@ export async function addLedgerEntry(input: {
   revalidatePath(`/${locale}/games`);
   revalidatePath(`/${locale}/games/${input.gameId}`);
   revalidatePath(`/${locale}/career`);
+  revalidatePath(`/${locale}/league`);
   return { ok: true as const };
 }
 
@@ -187,6 +188,7 @@ export async function closeGame(gameId: string) {
   revalidatePath(`/${locale}/games`);
   revalidatePath(`/${locale}/games/${gameId}`);
   revalidatePath(`/${locale}/career`);
+  revalidatePath(`/${locale}/league`);
   return { ok: true as const };
 }
 
@@ -205,6 +207,7 @@ export async function deleteGame(gameId: string) {
   revalidatePath(`/${locale}/games`);
   revalidatePath(`/${locale}/games/${gameId}`);
   revalidatePath(`/${locale}/career`);
+  revalidatePath(`/${locale}/league`);
   return { ok: true as const };
 }
 
@@ -385,4 +388,76 @@ export async function getCareerSummary() {
   });
 
   return { lifetimeNis: lifetime, rows };
+}
+
+/** Lifetime net per player across closed games only (same rules as career net). */
+export async function getLeagueStandings() {
+  await requireUser();
+
+  const closedRows = await db
+    .select({ id: games.id })
+    .from(games)
+    .where(eq(games.status, "closed"));
+
+  const closedIds = closedRows.map((r) => r.id);
+  if (closedIds.length === 0) {
+    return {
+      rows: [] as { userId: string; username: string; totalNis: number }[],
+    };
+  }
+
+  const memberRows = await db
+    .select({ userId: gameMembers.userId })
+    .from(gameMembers)
+    .where(inArray(gameMembers.gameId, closedIds));
+
+  const totals = new Map<string, number>();
+  for (const m of memberRows) {
+    totals.set(m.userId, 0);
+  }
+
+  const ledgerRows = await db
+    .select({
+      userId: ledgerEntries.userId,
+      kind: ledgerEntries.kind,
+      amountNis: ledgerEntries.amountNis,
+    })
+    .from(ledgerEntries)
+    .where(inArray(ledgerEntries.gameId, closedIds));
+
+  for (const row of ledgerRows) {
+    const delta =
+      row.kind === "buy_out" ? row.amountNis : -row.amountNis;
+    totals.set(row.userId, (totals.get(row.userId) ?? 0) + delta);
+  }
+
+  const userIds = [...totals.keys()];
+  if (userIds.length === 0) {
+    return { rows: [] as { userId: string; username: string; totalNis: number }[] };
+  }
+
+  const usersRows = await db
+    .select({
+      id: appUsers.id,
+      username: appUsers.username,
+    })
+    .from(appUsers)
+    .where(inArray(appUsers.id, userIds));
+
+  const byId = new Map(usersRows.map((u) => [u.id, u.username]));
+
+  const rows = userIds
+    .map((id) => ({
+      userId: id,
+      username: byId.get(id) ?? id,
+      totalNis: totals.get(id) ?? 0,
+    }))
+    .sort((a, b) => {
+      if (b.totalNis !== a.totalNis) return b.totalNis - a.totalNis;
+      return a.username.localeCompare(b.username, undefined, {
+        sensitivity: "base",
+      });
+    });
+
+  return { rows };
 }

@@ -59,6 +59,7 @@ export function BottomNav() {
 
   const items = [
     { href: `${base}/games`, label: t("games") },
+    { href: `${base}/league`, label: t("league") },
     { href: `${base}/career`, label: t("career") },
   ];
 

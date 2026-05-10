@@ -5,6 +5,7 @@
   },
   "nav": {
     "games": "Games",
+    "league": "League",
     "career": "Career",
     "login": "Log in",
     "logout": "Log out"
@@ -89,6 +90,15 @@
     "empty": "No completed games with you yet.",
     "net": "Your net",
     "chartTitle": "Net per closed game"
+  },
+  "league": {
+    "title": "League",
+    "subtitle": "Lifetime net across closed games — sorted by total winnings",
+    "rank": "#",
+    "player": "Player",
+    "total": "Total",
+    "empty": "No closed games yet — standings will show once games finish.",
+    "careerLink": "Your own history → Career"
   },
   "common": {
     "loading": "Loading…",
