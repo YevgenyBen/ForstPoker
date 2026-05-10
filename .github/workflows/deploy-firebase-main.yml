@@ -10,6 +10,10 @@
 #   DATABASE_URL         — Neon URL (optional for build; placeholder used if unset)
 #   NEXT_PUBLIC_FIREBASE_* — same values as .env / Firebase console (recommended for production bundles)
 #
+# Deploy uses `apphosting:rollouts:create` (GitHub commit on the connected repo), not
+# `firebase deploy` from uploaded ZIP. Cloud Build then uses env/secrets from Firebase
+# Console → App Hosting → backend → Environment (GitHub Actions secrets do not apply there).
+#
 # Manual rerun: repo → Actions → "Deploy main to Firebase" → Run workflow (deploy only;
 # version bump is skipped so semver does not advance on reruns).
 
@@ -56,12 +60,11 @@ jobs:
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
 
-      - name: Deploy to Firebase App Hosting
-        # --force bypasses "deploy local source?" (CI cannot answer prompts; --non-interactive alone is not enough)
-        run: npx --yes firebase-tools@latest deploy --only apphosting --non-interactive --force
+      - name: Start Firebase App Hosting rollout (build from GitHub)
+        # Builds the connected repo at this commit in Cloud Build — same path as console rollouts.
+        run: npx --yes firebase-tools@latest apphosting:rollouts:create forest-poker --git-commit "${{ github.sha }}" --force
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          CI: true
 
       - name: Bump minor version for next deploy
         if: github.event_name == 'push'
