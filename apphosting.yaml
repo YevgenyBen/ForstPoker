@@ -14,3 +14,12 @@ runConfig:
   minInstances: 0
   maxInstances: 100
   concurrency: 80
+
+# Next.js standalone binds using HOSTNAME (see `.next/standalone/server.js`). Cloud Run
+# sets PORT=8080 but Linux containers also set HOSTNAME to the pod id — the server can
+# then listen on the wrong interface and never satisfy “listen on PORT”. Force all interfaces.
+env:
+  - variable: HOSTNAME
+    value: "0.0.0.0"
+    availability:
+      - RUNTIME
