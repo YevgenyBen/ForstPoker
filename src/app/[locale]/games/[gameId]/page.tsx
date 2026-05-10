@@ -23,7 +23,8 @@ export default async function GameDetailPage({
   const detail = await getGameDetail(gameId);
   if (!detail) notFound();
 
-  const { game, members, ledger, settlements, closerName, isMember } = detail;
+  const { game, members, ledger, bankNis, settlements, closerName, isMember } =
+    detail;
   const canDeleteGame =
     v.kind === "member" && canDeleteGames(v.user.email);
   const t = await getTranslations("games");
@@ -81,35 +82,60 @@ export default async function GameDetailPage({
         </ul>
       </section>
 
+      <section
+        className="rounded-xl border border-[var(--fp-brass)]/35 bg-[var(--fp-parchment)]/45 px-4 py-3 shadow-sm"
+        aria-label={t("bankAria")}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm font-semibold text-[var(--fp-ink)]">{t("bank")}</span>
+          <span
+            className={`text-lg font-bold tabular-nums ${
+              bankNis >= 0 ? "text-[var(--fp-moss)]" : "text-[var(--fp-loss)]"
+            }`}
+            dir="ltr"
+          >
+            {money(bankNis)}
+          </span>
+        </div>
+      </section>
+
       <section>
         <h2 className="mb-2 font-semibold text-[var(--fp-ink)]">{t("ledger")}</h2>
         <div className="overflow-x-auto rounded-xl border border-[var(--fp-wood-mid)]/25">
-          <table className="w-full min-w-[320px] text-sm">
-            <thead className="bg-[var(--fp-parchment)] text-[var(--fp-ink)]">
-              <tr>
-                <th className="px-2 py-2 text-start font-semibold">{t("members")}</th>
-                <th className="px-2 py-2 text-start font-semibold">type</th>
-                <th className="px-2 py-2 text-end font-semibold">{t("amountNis")}</th>
-                <th className="px-2 py-2 text-start font-semibold">time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ledger.map((row) => (
-                <tr key={row.id} className="border-t border-[var(--fp-wood-mid)]/15">
-                  <td className="px-2 py-2" dir="auto">
-                    {row.username}
-                  </td>
-                  <td className="px-2 py-2">{row.kind}</td>
-                  <td className="px-2 py-2 text-end tabular-nums" dir="ltr">
-                    {money(row.amountNis)}
-                  </td>
-                  <td className="whitespace-nowrap px-2 py-2 text-[var(--fp-secondary)]">
-                    {tf(row.recordedAt)}
-                  </td>
+          {ledger.length === 0 ? (
+            <p className="px-4 py-10 text-center text-sm italic text-[var(--fp-secondary)]">
+              {t("ledgerEmpty")}
+            </p>
+          ) : (
+            <table className="w-full min-w-[320px] text-sm">
+              <thead className="bg-[var(--fp-parchment)] text-[var(--fp-ink)]">
+                <tr>
+                  <th className="px-2 py-2 text-start font-semibold">{t("members")}</th>
+                  <th className="px-2 py-2 text-start font-semibold">type</th>
+                  <th className="px-2 py-2 text-end font-semibold">{t("amountNis")}</th>
+                  <th className="px-2 py-2 text-start font-semibold">time</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {ledger.map((row) => (
+                  <tr key={row.id} className="border-t border-[var(--fp-wood-mid)]/15">
+                    <td className="px-2 py-2" dir="auto">
+                      {row.username}
+                    </td>
+                    <td className="px-2 py-2">
+                      {row.kind === "buy_in" ? t("buyIn") : t("ledgerBuyOut")}
+                    </td>
+                    <td className="px-2 py-2 text-end tabular-nums" dir="ltr">
+                      {money(row.amountNis)}
+                    </td>
+                    <td className="whitespace-nowrap px-2 py-2 text-[var(--fp-secondary)]">
+                      {tf(row.recordedAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </section>
 

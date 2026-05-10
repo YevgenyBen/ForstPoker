@@ -1,12 +1,55 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Ace">
-  <rect width="32" height="32" rx="6" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Ace of hearts">
+  <defs>
+    <linearGradient id="fp-card" x1="16" y1="2" x2="16" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e8e8e8"/>
+    </linearGradient>
+    <filter id="fp-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0.6" dy="1.1" stdDeviation="0.9" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <!-- Playing card -->
+  <rect
+    x="2"
+    y="1.5"
+    width="28"
+    height="29"
+    rx="5.5"
+    fill="url(#fp-card)"
+    filter="url(#fp-shadow)"
+  />
+
+  <!-- Center heart (same path & flat fill as corner hearts; scale unchanged) -->
+  <g fill="#dc2626" transform="translate(16, 17) scale(0.54) translate(-12, -12)">
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+  </g>
+
+  <!-- Top-left: A + small heart -->
   <text
-    x="16"
-    y="23"
-    text-anchor="middle"
-    font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
-    font-size="21"
-    font-weight="800"
-    fill="#dc2626"
+    x="4.75"
+    y="7.35"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="6.75"
+    font-weight="700"
+    fill="#111111"
   >A</text>
+  <g fill="#dc2626" transform="translate(5.35, 8.35) scale(0.11)">
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+  </g>
+
+  <!-- Bottom-right: inverted index -->
+  <g transform="translate(32, 32) rotate(180)">
+    <text
+      x="4.75"
+      y="7.35"
+      font-family="Georgia, 'Times New Roman', serif"
+      font-size="6.75"
+      font-weight="700"
+      fill="#111111"
+    >A</text>
+    <g fill="#dc2626" transform="translate(5.35, 8.35) scale(0.11)">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+    </g>
+  </g>
 </svg>

@@ -24,7 +24,7 @@ import { safeConsoleError } from "@/lib/logSafeError";
 
 const amountSchema = z.coerce.number().int().positive();
 
-/** Next game serial = existing row count + 1; title `Game{n}-dd/mm/yyyy` (Israel date). */
+/** Next game serial = existing row count + 1; title `Game {n} - dd/mm/yyyy` (Israel date). */
 function nextGameTitle(existingCount: number, at = new Date()) {
   const serial = existingCount + 1;
   const ddmmyyyy = new Intl.DateTimeFormat("en-GB", {
@@ -33,7 +33,7 @@ function nextGameTitle(existingCount: number, at = new Date()) {
     month: "2-digit",
     year: "numeric",
   }).format(at);
-  return `Game${serial}-${ddmmyyyy}`;
+  return `Game ${serial} - ${ddmmyyyy}`;
 }
 
 async function requireUser() {
@@ -253,6 +253,12 @@ export async function getGameDetail(gameId: string) {
 
   const isMember = members.some((m) => m.userId === user.id);
 
+  const bankNis = ledger.reduce(
+    (sum, row) =>
+      sum + (row.kind === "buy_in" ? row.amountNis : -row.amountNis),
+    0
+  );
+
   let settlementRows: {
     fromUserId: string;
     toUserId: string;
@@ -307,6 +313,7 @@ export async function getGameDetail(gameId: string) {
     game,
     members,
     ledger,
+    bankNis,
     settlements: settlementRows,
     closerName,
     isMember,
