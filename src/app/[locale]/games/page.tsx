@@ -7,6 +7,59 @@ import { canDeleteGames } from "@/lib/auth/gameAdmin";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { DeleteGameButton } from "@/components/DeleteGameButton";
 
+type ListedGame = {
+  id: string;
+  title: string;
+  createdAt: Date;
+};
+
+function GameListRow({
+  g,
+  locale,
+  tf,
+  variant,
+  showGameDelete,
+  statusText,
+}: {
+  g: ListedGame;
+  locale: string;
+  tf: (d: Date) => string;
+  variant: "open" | "closed";
+  showGameDelete: boolean;
+  statusText: string;
+}) {
+  const rowClass =
+    variant === "open"
+      ? "flex items-stretch gap-2 rounded-xl border-2 border-[var(--fp-win)] bg-[var(--fp-panel)] transition hover:bg-[var(--fp-win)]/8"
+      : "flex items-stretch gap-2 rounded-xl border-2 border-[var(--fp-wood-mid)]/25 bg-[var(--fp-panel)] transition hover:bg-[var(--fp-parchment)]";
+  const statusClass =
+    variant === "open" ? "text-[var(--fp-win)]" : "text-[var(--fp-secondary)]";
+
+  return (
+    <li>
+      <div className={rowClass}>
+        <Link
+          href={`/${locale}/games/${g.id}`}
+          className="flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3"
+        >
+          <span className="font-medium" dir="auto">
+            {g.title}
+          </span>
+          <span className="flex shrink-0 items-center gap-2 text-sm">
+            <span className={statusClass}>{statusText}</span>
+            <span className="text-[var(--fp-secondary)]">{tf(g.createdAt)}</span>
+          </span>
+        </Link>
+        {showGameDelete && (
+          <div className="flex shrink-0 items-center border-s border-[var(--fp-wood-mid)]/20 px-2 py-2">
+            <DeleteGameButton gameId={g.id} compact />
+          </div>
+        )}
+      </div>
+    </li>
+  );
+}
+
 export default async function GamesPage({
   params,
 }: {
@@ -19,6 +72,8 @@ export default async function GamesPage({
   const user = v.user;
 
   const games = await listGames();
+  const openGames = games.filter((g) => g.status === "open");
+  const closedGames = games.filter((g) => g.status === "closed");
   const t = await getTranslations("games");
   const showGameDelete = canDeleteGames(user.email);
   const tf = (d: Date) =>
@@ -58,39 +113,38 @@ export default async function GamesPage({
             {t("empty")}
           </p>
         ) : (
-          <ul className="space-y-2">
-            {games.map((g) => (
-              <li key={g.id}>
-                <div className="flex items-stretch gap-2 rounded-xl border border-[var(--fp-wood-mid)]/25 bg-[var(--fp-panel)] transition hover:bg-[var(--fp-parchment)]">
-                  <Link
-                    href={`/${locale}/games/${g.id}`}
-                    className="flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3"
-                  >
-                    <span className="font-medium" dir="auto">
-                      {g.title}
-                    </span>
-                    <span className="flex shrink-0 items-center gap-2 text-sm">
-                      <span
-                        className={
-                          g.status === "open"
-                            ? "text-[var(--fp-win)]"
-                            : "text-[var(--fp-secondary)]"
-                        }
-                      >
-                        {g.status === "open" ? t("statusOpen") : t("statusClosed")}
-                      </span>
-                      <span className="text-[var(--fp-secondary)]">{tf(g.createdAt)}</span>
-                    </span>
-                  </Link>
-                  {showGameDelete && (
-                    <div className="flex shrink-0 items-center border-s border-[var(--fp-wood-mid)]/20 px-2 py-2">
-                      <DeleteGameButton gameId={g.id} compact />
-                    </div>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-col gap-5">
+            {openGames.length > 0 && (
+              <ul className="space-y-2">
+                {openGames.map((g) => (
+                  <GameListRow
+                    key={g.id}
+                    g={g}
+                    locale={locale}
+                    tf={tf}
+                    variant="open"
+                    showGameDelete={showGameDelete}
+                    statusText={t("statusOpen")}
+                  />
+                ))}
+              </ul>
+            )}
+            {closedGames.length > 0 && (
+              <ul className="space-y-2">
+                {closedGames.map((g) => (
+                  <GameListRow
+                    key={g.id}
+                    g={g}
+                    locale={locale}
+                    tf={tf}
+                    variant="closed"
+                    showGameDelete={showGameDelete}
+                    statusText={t("statusClosed")}
+                  />
+                ))}
+              </ul>
+            )}
+          </div>
         )}
       </section>
     </main>
