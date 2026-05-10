@@ -32,7 +32,9 @@
       "invalidEmail": "Enter a valid email address.",
       "invalidCredentials": "Wrong email or password.",
       "tooManyRequests": "Too many attempts. Wait a moment and try again.",
-      "network": "Network error. Check your connection and try again."
+      "network": "Network error. Check your connection and try again.",
+      "popupBlocked": "Your browser blocked the Google pop-up. Allow pop-ups for this site and try again.",
+      "popupClosed": "Google sign-in was cancelled or the window closed before finishing."
     }
   },
   "onboarding": {

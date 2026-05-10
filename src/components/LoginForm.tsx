@@ -50,6 +50,11 @@ function authErrorToMessage(
       return t("errors.tooManyRequests");
     case "auth/network-request-failed":
       return t("errors.network");
+    case "auth/popup-blocked":
+      return t("errors.popupBlocked");
+    case "auth/cancelled-popup-request":
+    case "auth/popup-closed-by-user":
+      return t("errors.popupClosed");
     default:
       return t("errors.generic");
   }
@@ -88,12 +93,6 @@ function signInFlowErrorMessage(e: unknown, t: (key: string) => string): string 
     return sessionEstablishErrorMessage(e.message, t);
   }
   return t("errors.generic");
-}
-
-function isLocalDevHost(): boolean {
-  if (typeof window === "undefined") return false;
-  const h = window.location.hostname;
-  return h === "localhost" || h === "127.0.0.1" || h === "[::1]";
 }
 
 export function LoginForm() {
@@ -166,6 +165,12 @@ export function LoginForm() {
 
       if (me.user || me.hasSession) {
         sessionStorage.removeItem(GOOGLE_OAUTH_FLAG);
+        if (me.user) {
+          router.push(`/${locale}/games`);
+        } else {
+          router.push(`/${locale}/onboarding`);
+        }
+        router.refresh();
         return;
       }
 
@@ -180,7 +185,7 @@ export function LoginForm() {
       establishingRef.current = false;
       setLoading(false);
     }
-  }, [establishSession, t]);
+  }, [establishSession, locale, router, t]);
 
   /**
    * Complete redirect OAuth, then sync server session. After `signInWithRedirect`, Firebase may apply
@@ -240,28 +245,38 @@ export function LoginForm() {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
 
-      if (isLocalDevHost()) {
-        establishingRef.current = true;
+      /**
+       * Prefer popup on HTTPS (including production): `establishSession` runs in this click turn,
+       * so `POST /api/auth/session` always appears in Network. Redirect-only flow reloads the page
+       * and depends on `getRedirectResult` + storage; if that handoff fails, no session request runs.
+       */
+      establishingRef.current = true;
+      try {
         try {
           await signInWithPopup(auth, provider);
-          await establishSession();
-          sessionStorage.removeItem(GOOGLE_OAUTH_FLAG);
-        } finally {
-          establishingRef.current = false;
+        } catch (e) {
+          if (
+            isFirebaseAuthError(e) &&
+            e.code === "auth/popup-blocked"
+          ) {
+            sessionStorage.setItem(GOOGLE_OAUTH_FLAG, "1");
+            await signInWithRedirect(auth, provider);
+            return;
+          }
+          throw e;
         }
-      } else {
-        sessionStorage.setItem(GOOGLE_OAUTH_FLAG, "1");
-        await signInWithRedirect(auth, provider);
+        await auth.authStateReady();
+        await establishSession();
+        sessionStorage.removeItem(GOOGLE_OAUTH_FLAG);
+      } finally {
+        establishingRef.current = false;
       }
     } catch (e) {
       safeConsoleError("LoginForm:googleSignIn", e);
       sessionStorage.removeItem(GOOGLE_OAUTH_FLAG);
-      setError(authErrorToMessage(e, t));
+      setError(signInFlowErrorMessage(e, t));
     } finally {
-      if (isLocalDevHost()) {
-        setLoading(false);
-      }
-      /* redirect path: page reloads; loading state resets */
+      setLoading(false);
     }
   }
 
