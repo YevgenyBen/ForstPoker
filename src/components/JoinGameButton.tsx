@@ -6,24 +6,15 @@ import { joinGame } from "@/actions/games";
 
 type Props = {
   gameId: string;
-  isMember: boolean;
 };
 
-export function JoinGameButton({ gameId, isMember }: Props) {
+export function JoinGameButton({ gameId }: Props) {
   const t = useTranslations("games");
   const router = useRouter();
 
   async function handleJoin() {
     await joinGame(gameId);
     router.refresh();
-  }
-
-  if (isMember) {
-    return (
-      <span className="inline-flex rounded-lg bg-[var(--fp-sage)] px-3 py-1 text-sm font-semibold text-[var(--fp-ink)]">
-        {t("joined")}
-      </span>
-    );
   }
 
   return (
