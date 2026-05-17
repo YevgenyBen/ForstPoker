@@ -393,31 +393,43 @@ export async function getGameDetail(gameId: string) {
     .innerJoin(appUsers, eq(gameMembers.userId, appUsers.id))
     .where(eq(gameMembers.gameId, gameId));
 
-  type LedgerRow = {
-    id: string;
+  let ledgerRows: {
     userId: string;
-    username: string;
     kind: "buy_in" | "buy_out";
     amountNis: number;
-    recordedAt: Date;
-  };
-
-  let ledger: LedgerRow[] = [];
+  }[] = [];
   if (game.status !== "scheduled") {
-    ledger = await db
+    ledgerRows = await db
       .select({
-        id: ledgerEntries.id,
         userId: ledgerEntries.userId,
-        username: appUsers.username,
         kind: ledgerEntries.kind,
         amountNis: ledgerEntries.amountNis,
-        recordedAt: ledgerEntries.recordedAt,
       })
       .from(ledgerEntries)
-      .innerJoin(appUsers, eq(ledgerEntries.userId, appUsers.id))
-      .where(eq(ledgerEntries.gameId, gameId))
-      .orderBy(ledgerEntries.recordedAt);
+      .where(eq(ledgerEntries.gameId, gameId));
   }
+
+  const buyInByUser = new Map<string, number>();
+  const buyOutByUser = new Map<string, number>();
+  for (const row of ledgerRows) {
+    if (row.kind === "buy_in") {
+      buyInByUser.set(
+        row.userId,
+        (buyInByUser.get(row.userId) ?? 0) + row.amountNis
+      );
+    } else {
+      buyOutByUser.set(
+        row.userId,
+        (buyOutByUser.get(row.userId) ?? 0) + row.amountNis
+      );
+    }
+  }
+
+  const membersWithTotals = members.map((m) => ({
+    ...m,
+    buyInTotalNis: buyInByUser.get(m.userId) ?? 0,
+    buyOutTotalNis: buyOutByUser.get(m.userId) ?? 0,
+  }));
 
   type RsvpPerson = { userId: string; username: string };
 
@@ -459,7 +471,7 @@ export async function getGameDetail(gameId: string) {
 
   const isMember = members.some((m) => m.userId === user.id);
 
-  const bankNis = ledger.reduce(
+  const bankNis = ledgerRows.reduce(
     (sum, row) =>
       sum + (row.kind === "buy_in" ? row.amountNis : -row.amountNis),
     0
@@ -526,8 +538,7 @@ export async function getGameDetail(gameId: string) {
 
   return {
     game,
-    members,
-    ledger,
+    members: membersWithTotals,
     bankNis,
     settlements: settlementRows,
     closerName,

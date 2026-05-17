@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { getLeagueStandings } from "@/actions/games";
 import { getViewer } from "@/lib/auth/session";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { ltrAlignText } from "@/lib/ltrText";
 
 export default async function LeaguePage({
   params,
@@ -42,17 +43,20 @@ export default async function LeaguePage({
           {t("empty")}
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-[var(--fp-wood-mid)]/30 bg-[var(--fp-panel)] shadow-sm">
-          <table className="w-full min-w-[280px] border-collapse text-sm">
+        <div
+          className="overflow-x-auto rounded-2xl border border-[var(--fp-wood-mid)]/30 bg-[var(--fp-panel)] shadow-sm"
+          dir="ltr"
+        >
+          <table className="w-full min-w-[280px] table-fixed border-collapse text-sm">
             <thead>
               <tr className="border-b border-[var(--fp-wood-mid)]/25 bg-[var(--fp-parchment)]/40">
-                <th className="px-4 py-3 text-start font-semibold text-[var(--fp-ink)]">
+                <th className="w-12 px-4 py-3 text-left font-semibold text-[var(--fp-ink)]">
                   {t("rank")}
                 </th>
-                <th className="px-4 py-3 text-start font-semibold text-[var(--fp-ink)]">
+                <th className="w-full px-4 py-3 text-left font-semibold text-[var(--fp-ink)]">
                   {t("player")}
                 </th>
-                <th className="px-4 py-3 text-end font-semibold text-[var(--fp-ink)]">
+                <th className="w-24 px-4 py-3 text-end font-semibold text-[var(--fp-ink)]">
                   {t("total")}
                 </th>
               </tr>
@@ -68,11 +72,16 @@ export default async function LeaguePage({
                       isSelf ? "bg-[var(--fp-moss)]/12" : ""
                     }`}
                   >
-                    <td className="px-4 py-3 text-start tabular-nums text-[var(--fp-secondary)]">
+                    <td className="px-4 py-3 text-left tabular-nums text-[var(--fp-secondary)]">
                       {i + 1}
                     </td>
-                    <td className="px-4 py-3 text-start font-medium text-[var(--fp-ink)]" dir="auto">
-                      {r.username}
+                    <td className="px-4 py-3 text-left font-medium text-[var(--fp-ink)]" dir="ltr">
+                      <span
+                        dir="ltr"
+                        className="block w-full truncate text-left [unicode-bidi:isolate]"
+                      >
+                        {ltrAlignText(r.username)}
+                      </span>
                     </td>
                     <td
                       className={`px-4 py-3 text-end tabular-nums ${

@@ -34,7 +34,6 @@ export default async function GameDetailPage({
   const {
     game,
     members,
-    ledger,
     bankNis,
     settlements,
     closerName,
@@ -139,8 +138,8 @@ export default async function GameDetailPage({
                 ) : (
                   <ul className="space-y-1 text-sm">
                     {rsvp.yes.map((p) => (
-                      <li key={p.userId} dir="auto">
-                        {p.username}
+                      <li key={p.userId} dir="ltr">
+                        <span dir="auto">{p.username}</span>
                       </li>
                     ))}
                   </ul>
@@ -155,8 +154,8 @@ export default async function GameDetailPage({
                 ) : (
                   <ul className="space-y-1 text-sm">
                     {rsvp.maybe.map((p) => (
-                      <li key={p.userId} dir="auto">
-                        {p.username}
+                      <li key={p.userId} dir="ltr">
+                        <span dir="auto">{p.username}</span>
                       </li>
                     ))}
                   </ul>
@@ -171,8 +170,8 @@ export default async function GameDetailPage({
                 ) : (
                   <ul className="space-y-1 text-sm">
                     {rsvp.no.map((p) => (
-                      <li key={p.userId} dir="auto">
-                        {p.username}
+                      <li key={p.userId} dir="ltr">
+                        <span dir="auto">{p.username}</span>
                       </li>
                     ))}
                   </ul>
@@ -194,16 +193,44 @@ export default async function GameDetailPage({
 
           <section>
             <h2 className="mb-2 font-semibold text-[var(--fp-ink)]">{t("members")}</h2>
-            <ul className="space-y-1 rounded-xl bg-[var(--fp-parchment)]/50 p-3">
-              {members.map((m) => (
-                <li key={m.userId} className="flex justify-between text-sm" dir="auto">
-                  <span>{m.username}</span>
-                  <span className="text-[var(--fp-secondary)]">
-                    {formatDateTimeDdMmYyyyHm(m.joinedAt)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <div className="rounded-xl bg-[var(--fp-parchment)]/50 p-3" dir="ltr">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs font-semibold text-[var(--fp-secondary)]">
+                    <th className="pb-2 text-left font-semibold">
+                      {t("playerNames")}
+                    </th>
+                    <th className="w-[5.5rem] pb-2 text-end font-semibold">
+                      {t("buyIn")}
+                    </th>
+                    <th className="w-[5.5rem] pb-2 text-end font-semibold">
+                      {t("ledgerBuyOut")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {members.map((m) => (
+                    <tr key={m.userId}>
+                      <td className="max-w-0 py-0.5 text-left" dir="ltr">
+                        <span className="block truncate">{m.username}</span>
+                      </td>
+                      <td
+                        className="py-0.5 text-end tabular-nums font-semibold text-[var(--fp-ink)]"
+                        dir="ltr"
+                      >
+                        {money(m.buyInTotalNis)}
+                      </td>
+                      <td
+                        className="py-0.5 text-end tabular-nums font-semibold text-[var(--fp-ink)]"
+                        dir="ltr"
+                      >
+                        {money(m.buyOutTotalNis)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section
@@ -220,46 +247,6 @@ export default async function GameDetailPage({
               >
                 {money(bankNis)}
               </span>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="mb-2 font-semibold text-[var(--fp-ink)]">{t("ledger")}</h2>
-            <div className="overflow-x-auto rounded-xl border border-[var(--fp-wood-mid)]/25">
-              {ledger.length === 0 ? (
-                <p className="px-4 py-10 text-center text-sm italic text-[var(--fp-secondary)]">
-                  {t("ledgerEmpty")}
-                </p>
-              ) : (
-                <table className="w-full min-w-[320px] text-sm">
-                  <thead className="bg-[var(--fp-parchment)] text-[var(--fp-ink)]">
-                    <tr>
-                      <th className="px-2 py-2 text-start font-semibold">{t("members")}</th>
-                      <th className="px-2 py-2 text-start font-semibold">type</th>
-                      <th className="px-2 py-2 text-end font-semibold">{t("amountNis")}</th>
-                      <th className="px-2 py-2 text-start font-semibold">time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ledger.map((row) => (
-                      <tr key={row.id} className="border-t border-[var(--fp-wood-mid)]/15">
-                        <td className="px-2 py-2" dir="auto">
-                          {row.username}
-                        </td>
-                        <td className="px-2 py-2">
-                          {row.kind === "buy_in" ? t("buyIn") : t("ledgerBuyOut")}
-                        </td>
-                        <td className="px-2 py-2 text-end tabular-nums" dir="ltr">
-                          {money(row.amountNis)}
-                        </td>
-                        <td className="whitespace-nowrap px-2 py-2 text-[var(--fp-secondary)]">
-                          {formatDateTimeDdMmYyyyHm(row.recordedAt)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
             </div>
           </section>
 
@@ -283,9 +270,10 @@ export default async function GameDetailPage({
                       key={`${s.fromUserId}-${s.toUserId}-${i}`}
                       className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-[var(--fp-parchment)]/60 px-3 py-2 text-sm"
                     >
-                      <span dir="auto">
-                        <strong>{s.fromName}</strong> {t("from")} →{" "}
-                        <strong>{s.toName}</strong>
+                      <span className="inline-flex items-center gap-1.5" dir="ltr">
+                        <strong dir="auto">{s.fromName}</strong>
+                        <span aria-hidden="true">→</span>
+                        <strong dir="auto">{s.toName}</strong>
                       </span>
                       <span className="tabular-nums font-semibold" dir="ltr">
                         {money(s.amountNis)}
