@@ -184,12 +184,14 @@ export default async function GameDetailPage({
 
       {!isScheduled && (
         <>
-          <section className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--fp-wood-mid)]/25 bg-[var(--fp-panel)] p-4">
-            <JoinGameButton gameId={gameId} isMember={isMember} />
-            {!isMember && (
-              <p className="text-sm text-[var(--fp-secondary)]">{t("nonMemberHint")}</p>
-            )}
-          </section>
+          {game.status === "open" && !isMember && (
+            <section className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--fp-wood-mid)]/25 bg-[var(--fp-panel)] p-4">
+              <JoinGameButton gameId={gameId} />
+              <p className="text-sm text-[var(--fp-secondary)]">
+                {t("nonMemberHint")}
+              </p>
+            </section>
+          )}
 
           <section>
             <h2 className="mb-2 font-semibold text-[var(--fp-ink)]">{t("members")}</h2>
@@ -233,22 +235,26 @@ export default async function GameDetailPage({
             </div>
           </section>
 
-          <section
-            className="rounded-xl border border-[var(--fp-brass)]/35 bg-[var(--fp-parchment)]/45 px-4 py-3 shadow-sm"
-            aria-label={t("bankAria")}
-          >
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-sm font-semibold text-[var(--fp-ink)]">{t("bank")}</span>
-              <span
-                className={`text-lg font-bold tabular-nums ${
-                  bankNis >= 0 ? "text-[var(--fp-moss)]" : "text-[var(--fp-loss)]"
-                }`}
-                dir="ltr"
-              >
-                {money(bankNis)}
-              </span>
-            </div>
-          </section>
+          {game.status === "open" && (
+            <section
+              className="rounded-xl border border-[var(--fp-brass)]/35 bg-[var(--fp-parchment)]/45 px-4 py-3 shadow-sm"
+              aria-label={t("bankAria")}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-semibold text-[var(--fp-ink)]">
+                  {t("bank")}
+                </span>
+                <span
+                  className={`text-lg font-bold tabular-nums ${
+                    bankNis >= 0 ? "text-[var(--fp-moss)]" : "text-[var(--fp-loss)]"
+                  }`}
+                  dir="ltr"
+                >
+                  {money(bankNis)}
+                </span>
+              </div>
+            </section>
+          )}
 
           {game.status === "open" && isMember && (
             <GameLedgerForm gameId={gameId} />
