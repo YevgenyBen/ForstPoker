@@ -98,14 +98,7 @@ export async function openGame(gameId: string) {
     return { error: "bad_state" as const };
   }
 
-  const [member] = await db
-    .select()
-    .from(gameMembers)
-    .where(
-      and(eq(gameMembers.gameId, gameId), eq(gameMembers.userId, user.id))
-    )
-    .limit(1);
-  if (!member) return { error: "not_member" as const };
+  if (g.createdBy !== user.id) return { error: "forbidden" as const };
 
   await db
     .update(games)

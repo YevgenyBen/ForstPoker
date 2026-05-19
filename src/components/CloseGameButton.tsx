@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { closeGame } from "@/actions/games";
+import { useActionRefresh } from "@/hooks/useActionRefresh";
+import { Spinner } from "@/components/Spinner";
 
 type Props = {
   gameId: string;
@@ -12,31 +13,41 @@ type Props = {
 
 export function CloseGameButton({ gameId, disabled }: Props) {
   const t = useTranslations("games");
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const tCommon = useTranslations("common");
+  const { pending, run } = useActionRefresh();
   const [error, setError] = useState<string | null>(null);
 
   async function handleClose() {
     if (!confirm(t("closeConfirm"))) return;
-    setLoading(true);
     setError(null);
-    const res = await closeGame(gameId);
-    setLoading(false);
-    if (res.error === "bad_balance") setError(t("balanceError"));
-    else if (res.error === "already_closed") setError(t("alreadyClosed"));
-    else if (res.error) setError(res.error);
-    else router.refresh();
+    await run(async () => {
+      const res = await closeGame(gameId);
+      if (res.error === "bad_balance") {
+        setError(t("balanceError"));
+        return false;
+      }
+      if (res.error === "already_closed") {
+        setError(t("alreadyClosed"));
+        return false;
+      }
+      if (res.error) {
+        setError(res.error);
+        return false;
+      }
+      return true;
+    });
   }
 
   return (
     <div className="space-y-2">
       <button
         type="button"
-        onClick={handleClose}
-        disabled={disabled || loading}
-        className="w-full min-h-11 rounded-xl border-2 border-[var(--fp-loss)] bg-transparent font-semibold text-[var(--fp-loss)] disabled:opacity-50"
+        onClick={() => void handleClose()}
+        disabled={disabled || pending}
+        className="flex w-full min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-[var(--fp-loss)] bg-transparent font-semibold text-[var(--fp-loss)] disabled:opacity-50"
       >
-        {t("closeGame")}
+        {pending && <Spinner className="size-4" />}
+        {pending ? tCommon("loading") : t("closeGame")}
       </button>
       {error && <p className="text-sm text-[var(--fp-loss)]">{error}</p>}
     </div>

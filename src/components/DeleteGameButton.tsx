@@ -4,6 +4,8 @@ import { useState, type MouseEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { deleteGame } from "@/actions/games";
+import { useActionRefresh } from "@/hooks/useActionRefresh";
+import { Spinner } from "@/components/Spinner";
 
 type Props = {
   gameId: string;
@@ -13,28 +15,29 @@ type Props = {
 
 export function DeleteGameButton({ gameId, compact }: Props) {
   const t = useTranslations("games");
+  const tCommon = useTranslations("common");
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { pending, run } = useActionRefresh();
   const [error, setError] = useState<string | null>(null);
 
   async function handleDelete(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     e.stopPropagation();
     if (!confirm(t("deleteGameConfirm"))) return;
-    setLoading(true);
     setError(null);
-    const res = await deleteGame(gameId);
-    setLoading(false);
-    if ("error" in res) {
-      if (res.error === "forbidden") setError(t("deleteGameForbidden"));
-      else if (res.error === "not_found") setError(t("deleteGameNotFound"));
-      else setError(t("deleteGameFailed"));
-      return;
-    }
-    router.refresh();
-    if (pathname?.includes(`/games/${gameId}`)) {
+    const ok = await run(async () => {
+      const res = await deleteGame(gameId);
+      if ("error" in res) {
+        if (res.error === "forbidden") setError(t("deleteGameForbidden"));
+        else if (res.error === "not_found") setError(t("deleteGameNotFound"));
+        else setError(t("deleteGameFailed"));
+        return false;
+      }
+      return true;
+    });
+    if (ok && pathname?.includes(`/games/${gameId}`)) {
       router.push(`/${locale}/games`);
     }
   }
@@ -44,14 +47,15 @@ export function DeleteGameButton({ gameId, compact }: Props) {
       <button
         type="button"
         onClick={handleDelete}
-        disabled={loading}
+        disabled={pending}
         className={
           compact
-            ? "min-h-9 shrink-0 rounded-lg border-2 border-[var(--fp-loss)] bg-[var(--fp-loss)]/15 px-3 py-1.5 text-sm font-semibold text-[var(--fp-loss)] disabled:opacity-50"
-            : "w-full min-h-11 rounded-xl border-2 border-[var(--fp-loss)] bg-[var(--fp-loss)]/15 font-semibold text-[var(--fp-loss)] disabled:opacity-50"
+            ? "inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-lg border-2 border-[var(--fp-loss)] bg-[var(--fp-loss)]/15 px-3 py-1.5 text-sm font-semibold text-[var(--fp-loss)] disabled:opacity-50"
+            : "inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-xl border-2 border-[var(--fp-loss)] bg-[var(--fp-loss)]/15 font-semibold text-[var(--fp-loss)] disabled:opacity-50"
         }
       >
-        {compact ? t("deleteGameShort") : t("deleteGame")}
+        {pending && <Spinner className="size-4" />}
+        {pending ? tCommon("loading") : compact ? t("deleteGameShort") : t("deleteGame")}
       </button>
       {error && (
         <p

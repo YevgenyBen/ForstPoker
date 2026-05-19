@@ -1,25 +1,31 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { openGame } from "@/actions/games";
+import { useActionRefresh } from "@/hooks/useActionRefresh";
+import { Spinner } from "@/components/Spinner";
 
 export function OpenGameButton({ gameId }: { gameId: string }) {
   const t = useTranslations("games");
-  const router = useRouter();
+  const tCommon = useTranslations("common");
+  const { pending, run } = useActionRefresh();
 
   async function handle() {
-    const r = await openGame(gameId);
-    if (r.ok) router.refresh();
+    await run(async () => {
+      const r = await openGame(gameId);
+      return r.ok;
+    });
   }
 
   return (
     <button
       type="button"
       onClick={() => void handle()}
-      className="rounded-xl bg-[var(--fp-moss)] px-4 py-2 font-semibold text-white"
+      disabled={pending}
+      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--fp-moss)] px-4 py-2 font-semibold text-white disabled:opacity-50"
     >
-      {t("openTable")}
+      {pending && <Spinner className="size-4 text-white" />}
+      {pending ? tCommon("loading") : t("openTable")}
     </button>
   );
 }

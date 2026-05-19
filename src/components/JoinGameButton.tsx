@@ -1,8 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { joinGame } from "@/actions/games";
+import { useActionRefresh } from "@/hooks/useActionRefresh";
+import { Spinner } from "@/components/Spinner";
 
 type Props = {
   gameId: string;
@@ -10,20 +11,25 @@ type Props = {
 
 export function JoinGameButton({ gameId }: Props) {
   const t = useTranslations("games");
-  const router = useRouter();
+  const tCommon = useTranslations("common");
+  const { pending, run } = useActionRefresh();
 
   async function handleJoin() {
-    await joinGame(gameId);
-    router.refresh();
+    await run(async () => {
+      await joinGame(gameId);
+      return true;
+    });
   }
 
   return (
     <button
       type="button"
-      onClick={handleJoin}
-      className="rounded-xl bg-[var(--fp-moss)] px-4 py-2 font-semibold text-white"
+      onClick={() => void handleJoin()}
+      disabled={pending}
+      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--fp-moss)] px-4 py-2 font-semibold text-white disabled:opacity-50"
     >
-      {t("join")}
+      {pending && <Spinner className="size-4 text-white" />}
+      {pending ? tCommon("loading") : t("join")}
     </button>
   );
 }

@@ -13,6 +13,7 @@ import { DeleteGameButton } from "@/components/DeleteGameButton";
 import { OpenGameButton } from "@/components/OpenGameButton";
 import { LocationWazeLink } from "@/components/LocationWazeLink";
 import { GameRsvpPanel } from "@/components/GameRsvpPanel";
+import { ActionRefreshBoundary } from "@/components/ActionRefreshBoundary";
 import {
   formatDateDdMmYyyy,
   formatDateTimeDdMmYyyyHm,
@@ -46,10 +47,11 @@ export default async function GameDetailPage({
   const isScheduled = game.status === "scheduled";
   const canDeleteGame =
     v.kind === "member" && canDeleteGames(v.user.email);
+  const isHost = v.kind === "member" && game.createdBy === v.user.id;
   const canCancelScheduled =
     v.kind === "member" &&
     isScheduled &&
-    (game.createdBy === v.user.id || canDeleteGames(v.user.email));
+    (isHost || canDeleteGames(v.user.email));
   const t = await getTranslations("games");
 
   const money = (n: number) =>
@@ -88,6 +90,7 @@ export default async function GameDetailPage({
         <LocaleSwitcher />
       </header>
 
+      <ActionRefreshBoundary>
       {isScheduled && (
         <section className="space-y-2 rounded-xl border border-[var(--fp-brass)]/35 bg-[var(--fp-brass)]/8 p-4 text-sm">
           <p dir="auto">
@@ -113,13 +116,15 @@ export default async function GameDetailPage({
         <>
           <GameRsvpPanel gameId={gameId} myRsvp={myRsvp} />
 
-          {(isMember || canCancelScheduled) && (
+          {(isHost || canCancelScheduled) && (
             <section className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--fp-wood-mid)]/25 bg-[var(--fp-panel)] p-4">
-              <div className="flex flex-wrap items-center gap-3">
-                {isMember && <OpenGameButton gameId={gameId} />}
-              </div>
+              {isHost && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <OpenGameButton gameId={gameId} />
+                </div>
+              )}
               {canCancelScheduled && (
-                <div className="ms-auto shrink-0">
+                <div className={isHost ? "ms-auto shrink-0" : "shrink-0"}>
                   <CancelScheduledGameButton gameId={gameId} />
                 </div>
               )}
@@ -184,6 +189,10 @@ export default async function GameDetailPage({
 
       {!isScheduled && (
         <>
+          {game.status === "open" && isMember && (
+            <GameLedgerForm gameId={gameId} />
+          )}
+
           {game.status === "open" && !isMember && (
             <section className="flex flex-wrap items-center gap-3 rounded-xl border border-[var(--fp-wood-mid)]/25 bg-[var(--fp-panel)] p-4">
               <JoinGameButton gameId={gameId} />
@@ -257,10 +266,6 @@ export default async function GameDetailPage({
           )}
 
           {game.status === "open" && isMember && (
-            <GameLedgerForm gameId={gameId} />
-          )}
-
-          {game.status === "open" && isMember && (
             <CloseGameButton gameId={gameId} />
           )}
 
@@ -306,6 +311,7 @@ export default async function GameDetailPage({
           <DeleteGameButton gameId={gameId} />
         </section>
       )}
+      </ActionRefreshBoundary>
     </main>
   );
 }
